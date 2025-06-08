@@ -7,8 +7,11 @@ if (isset($_POST['registrar_producto'])) {
     $cantidad=$_POST['cantidad'];
     $fecha_vencimiento=$_POST['fecha_vencimiento'];
     $requiere_refrigeracion=$_POST['requiere_refrigeracion'];
+    $precio_venta=$_POST[' $precio_venta'];
+   
 
-    $query="INSERT INTO productos(nombre_producto,descripcion,laboratorio_fabrica,stock_actual,fecha_vencimiento, requiere_refrigeracion) VALUES('$nombre','$descripcion','$laboratorio','$cantidad','$fecha_vencimiento','$requiere_refrigeracion')";
+
+    $query="INSERT INTO productos(nombre_producto,descripcion,laboratorio_fabrica,stock_actual,fecha_vencimiento, requiere_refrigeracion,precio_venta) VALUES('$nombre','$descripcion','$laboratorio','$cantidad','$fecha_vencimiento','$requiere_refrigeracion','$precio_venta')";
     $result=mysqli_query($conn, $query);
 
     if ($result) {
@@ -46,6 +49,8 @@ if (isset($_POST['registrar_producto'])) {
     <input class="mb-2" type="date" name="fecha_vencimiento">
      <label class="fw-semibold" for="">Requiere refrigeracion</label>
     <input class="mb-2" type="text" name="requiere_refrigeracion" placeholder="Si o no?">
+    <label class="fw-semibold" for="">Precio de venta</label>
+    <input class="mb-2" type="text" name="precio_venta" placeholder="Si o no?">
 
     <button type="submit" class="btn btn-secondary bg-purple" name="registrar_producto">Registar producto</button>
   </form>
@@ -63,6 +68,7 @@ if (isset($_POST['registrar_producto'])) {
                   <th scope="col">Cantidad</th>
                   <th scope="col">Fecha de vencimiento</th>
                   <th scope="col">Requiere refrigeración</th>
+                  <th scope="col">Presio de venta</th>
                   <th scope="col">Acciones</th>
                 </tr>
               </thead>
@@ -80,6 +86,7 @@ if (isset($_POST['registrar_producto'])) {
                 <td ><?php echo $row['stock_actual'] ?></td>
                 <td ><?php echo $row['fecha_vencimiento'] ?></td>
                 <td ><?php echo $row['requiere_refrigeracion'] ?></td>
+                 <td ><?php echo $row['precio_venta'] ?></td>
 
 
                
