@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-06-2025 a las 01:42:18
+-- Tiempo de generación: 19-06-2025 a las 17:58:21
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -41,7 +41,8 @@ CREATE TABLE `detalle_venta` (
 --
 
 INSERT INTO `detalle_venta` (`id_detalle_venta`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`, `subtotal`) VALUES
-(1, 1, 4, 1, 12.00, 12.00);
+(1, 1, 4, 1, 12.00, 12.00),
+(2, 2, 4, 1, 12.00, 12.00);
 
 -- --------------------------------------------------------
 
@@ -66,7 +67,7 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fabrica`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `requiere_refrigeracion`, `precio_venta`) VALUES
-(4, 'Acetaminfen', 'Para el dolor de cabeza', 'Santa inez', 9, 0, '2025-06-07', 'no', 12),
+(4, 'Acetaminfen', 'Para el dolor de cabeza', 'Santa inez', 8, 0, '2025-06-07', 'no', 12),
 (6, 'Tegragrip', 'Malestar general', 'La republica', 16, 0, '2025-06-07', 'no', 0);
 
 -- --------------------------------------------------------
@@ -113,6 +114,25 @@ INSERT INTO `ubicacion` (`id_ubicacion`, `descripcion_ubicacion`, `cantidad`) VA
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL,
+  `correo` varchar(30) NOT NULL,
+  `clave` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `correo`, `clave`) VALUES
+(1, 'Irimar23@gmail.com', 'Irimar123#');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `ventas`
 --
 
@@ -128,7 +148,8 @@ CREATE TABLE `ventas` (
 --
 
 INSERT INTO `ventas` (`id`, `fecha_venta`, `total`, `id_usuario`) VALUES
-(1, '2025-06-08 19:39:47', 12.00, NULL);
+(1, '2025-06-08 19:39:47', 12.00, NULL),
+(2, '2025-06-15 21:50:44', 12.00, NULL);
 
 --
 -- Índices para tablas volcadas
@@ -162,6 +183,12 @@ ALTER TABLE `ubicacion`
   ADD PRIMARY KEY (`id_ubicacion`);
 
 --
+-- Indices de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `ventas`
 --
 ALTER TABLE `ventas`
@@ -175,7 +202,7 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT de la tabla `detalle_venta`
 --
 ALTER TABLE `detalle_venta`
-  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
@@ -190,10 +217,16 @@ ALTER TABLE `ubicacion`
   MODIFY `id_ubicacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restricciones para tablas volcadas
