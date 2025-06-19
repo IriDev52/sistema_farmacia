@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 16-06-2025 a las 02:36:10
+-- Tiempo de generación: 19-06-2025 a las 17:58:21
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,11 +24,11 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `detalle_ventas`
+-- Estructura de tabla para la tabla `detalle_venta`
 --
 
-CREATE TABLE `detalle_ventas` (
-  `id_detalle` int(11) NOT NULL,
+CREATE TABLE `detalle_venta` (
+  `id_detalle_venta` int(11) NOT NULL,
   `id_venta` int(11) NOT NULL,
   `id_producto` int(11) NOT NULL,
   `cantidad` int(11) NOT NULL,
@@ -37,13 +37,12 @@ CREATE TABLE `detalle_ventas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `detalle_ventas`
+-- Volcado de datos para la tabla `detalle_venta`
 --
 
-INSERT INTO `detalle_ventas` (`id_detalle`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`, `subtotal`) VALUES
-(1, 1, 4, 1, 0.05, 0.05),
-(2, 2, 3, 1, 6.00, 6.00),
-(3, 3, 2, 4, 5.20, 20.80);
+INSERT INTO `detalle_venta` (`id_detalle_venta`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`, `subtotal`) VALUES
+(1, 1, 4, 1, 12.00, 12.00),
+(2, 2, 4, 1, 12.00, 12.00);
 
 -- --------------------------------------------------------
 
@@ -68,8 +67,8 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fabrica`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `requiere_refrigeracion`, `precio_venta`) VALUES
-(1, 'Atamel 400mg', 'analgésico ', 'PHARMA', 50, 0, '2025-06-26', '1', 5.2),
-(2, 'vitamina C', 'vitamina', 'PHARMA', 56, 0, '2025-06-27', '1', 5.2);
+(4, 'Acetaminfen', 'Para el dolor de cabeza', 'Santa inez', 8, 0, '2025-06-07', 'no', 12),
+(6, 'Tegragrip', 'Malestar general', 'La republica', 16, 0, '2025-06-07', 'no', 0);
 
 -- --------------------------------------------------------
 
@@ -82,6 +81,15 @@ CREATE TABLE `producto_ubicacion` (
   `ID_ubicacion` int(11) NOT NULL,
   `cantidad` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `producto_ubicacion`
+--
+
+INSERT INTO `producto_ubicacion` (`ID_Producto`, `ID_ubicacion`, `cantidad`) VALUES
+(4, 1, 0),
+(4, 2, 5),
+(6, 1, 6);
 
 -- --------------------------------------------------------
 
@@ -100,8 +108,27 @@ CREATE TABLE `ubicacion` (
 --
 
 INSERT INTO `ubicacion` (`id_ubicacion`, `descripcion_ubicacion`, `cantidad`) VALUES
-(2, 'b2', 0),
-(3, 'Atamel 400mg', 0);
+(1, 'Estante b1', 0),
+(2, 'Estante b2', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL,
+  `correo` varchar(30) NOT NULL,
+  `clave` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `correo`, `clave`) VALUES
+(1, 'Irimar23@gmail.com', 'Irimar123#');
 
 -- --------------------------------------------------------
 
@@ -110,31 +137,31 @@ INSERT INTO `ubicacion` (`id_ubicacion`, `descripcion_ubicacion`, `cantidad`) VA
 --
 
 CREATE TABLE `ventas` (
-  `id_venta` int(11) NOT NULL,
-  `fecha_venta` datetime NOT NULL,
-  `total_venta` decimal(10,2) NOT NULL
+  `id` int(11) NOT NULL,
+  `fecha_venta` datetime DEFAULT current_timestamp(),
+  `total` decimal(10,2) NOT NULL,
+  `id_usuario` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `ventas`
 --
 
-INSERT INTO `ventas` (`id_venta`, `fecha_venta`, `total_venta`) VALUES
-(1, '2025-06-15 20:03:14', 0.05),
-(2, '2025-06-15 20:03:26', 6.00),
-(3, '2025-06-15 20:11:46', 20.80);
+INSERT INTO `ventas` (`id`, `fecha_venta`, `total`, `id_usuario`) VALUES
+(1, '2025-06-08 19:39:47', 12.00, NULL),
+(2, '2025-06-15 21:50:44', 12.00, NULL);
 
 --
 -- Índices para tablas volcadas
 --
 
 --
--- Indices de la tabla `detalle_ventas`
+-- Indices de la tabla `detalle_venta`
 --
-ALTER TABLE `detalle_ventas`
-  ADD PRIMARY KEY (`id_detalle`),
-  ADD KEY `fk_venta` (`id_venta`),
-  ADD KEY `fk_producto` (`id_producto`);
+ALTER TABLE `detalle_venta`
+  ADD PRIMARY KEY (`id_detalle_venta`),
+  ADD KEY `id_venta` (`id_venta`),
+  ADD KEY `id_producto` (`id_producto`);
 
 --
 -- Indices de la tabla `productos`
@@ -156,49 +183,61 @@ ALTER TABLE `ubicacion`
   ADD PRIMARY KEY (`id_ubicacion`);
 
 --
+-- Indices de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  ADD PRIMARY KEY (`id_venta`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
 --
 
 --
--- AUTO_INCREMENT de la tabla `detalle_ventas`
+-- AUTO_INCREMENT de la tabla `detalle_venta`
 --
-ALTER TABLE `detalle_ventas`
-  MODIFY `id_detalle` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+ALTER TABLE `detalle_venta`
+  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `ubicacion`
 --
 ALTER TABLE `ubicacion`
-  MODIFY `id_ubicacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_ubicacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restricciones para tablas volcadas
 --
 
 --
--- Filtros para la tabla `detalle_ventas`
+-- Filtros para la tabla `detalle_venta`
 --
-ALTER TABLE `detalle_ventas`
-  ADD CONSTRAINT `fk_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id`),
-  ADD CONSTRAINT `fk_venta` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`) ON DELETE CASCADE;
+ALTER TABLE `detalle_venta`
+  ADD CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id`),
+  ADD CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id`);
 
 --
 -- Filtros para la tabla `producto_ubicacion`

@@ -1,9 +1,17 @@
 <?php 
 include("../recursos/header.php");
  ?>
+ <?php 
+include('../conexion/conex.php');
+session_start();
+if (isset($_SESSION['usuario'])!="usuario") {
+	header("Location: login.php");
+}
+?>
 <header class=" p-2 bg-purple text-white text-center" >
 	
 <h2>Sistema de inventario farmacia </h2>
+<a href="cerrarSesion.php" class="col-2 text-decoration-none text-white"><i class="bi bi-box-arrow-left h4"></i> Salir  </a>
 </header>
 
 <div class="container d-flex flex-column justify-content-center align-items-center mt-4">

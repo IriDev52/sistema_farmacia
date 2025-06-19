@@ -1,17 +1,13 @@
 <?php
-// Habilitar la visualización de errores para depuración (QUÍTALA EN PRODUCCIÓN)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-
+// Asegúrate de que las rutas a tus archivos de recursos y conexión sean correctas
 include("../recursos/header.php"); // Incluye tu cabecera HTML y CSS
-include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD, que debe definir $conex
+include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD
 
 $id_producto_editar = null; // Variable para almacenar el ID del producto a editar
 $producto = null; // Variable para almacenar los datos del producto
 
 // --- 1. PROCESAR EL FORMULARIO DE EDICIÓN (cuando se envía) ---
-// Se verifica si el formulario fue enviado (botón con name="actualizar_productos" presionado)
+// CAMBIO IMPORTANTE AQUÍ: name="actualizar_productos" ahora coincide con el HTML
 if (isset($_POST['actualizar_productos'])) {
     $id_producto_actualizar = $_POST['id']; // El ID del producto a actualizar (oculto en el formulario)
     $nuevo_nombre = $_POST['nombre_producto'];
@@ -25,11 +21,11 @@ if (isset($_POST['actualizar_productos'])) {
     }
 
     // Preparar la consulta UPDATE
+    // CAMBIO IMPORTANTE AQUÍ: Corrección en la sentencia SQL y los tipos de bind_param
     // Asegúrate de que los nombres de las columnas (nombre_producto, stock_actual, precio_venta)
     // coincidan exactamente con los de tu tabla 'productos'.
-    // Usamos 'id' aquí según la consulta SELECT de abajo, asumiendo que es el nombre de la columna.
     $query = "UPDATE productos SET nombre_producto = ?, stock_actual = ?, precio_venta = ? WHERE id = ?";
-    $stmt = mysqli_prepare($conex, $query); // CORRECCIÓN: Usar $conex
+    $stmt = mysqli_prepare($conn, $query);
 
     if ($stmt) {
         // 's' para string (nombre_producto)
@@ -42,13 +38,13 @@ if (isset($_POST['actualizar_productos'])) {
             echo '<script>alert("Producto actualizado correctamente."); window.location.href = "productos.php";</script>';
             exit();
         } else {
-            // Se usa mysqli_error($conex) para obtener el error específico de la base de datos
-            echo '<script>alert("Error al actualizar el producto: ' . addslashes(mysqli_error($conex)) . '"); window.history.back();</script>'; // CORRECCIÓN: Usar $conex
+            // Se usa mysqli_error($conn) para obtener el error específico de la base de datos
+            echo '<script>alert("Error al actualizar el producto: ' . addslashes(mysqli_error($conn)) . '"); window.history.back();</script>';
             exit();
         }
         mysqli_stmt_close($stmt);
     } else {
-        echo '<script>alert("Error al preparar la consulta de actualización: ' . addslashes(mysqli_error($conex)) . '"); window.history.back();</script>'; // CORRECCIÓN: Usar $conex
+        echo '<script>alert("Error al preparar la consulta de actualización: ' . addslashes(mysqli_error($conn)) . '"); window.history.back();</script>';
         exit();
     }
 }
@@ -58,10 +54,8 @@ if (isset($_POST['actualizar_productos'])) {
 if (isset($_GET['id'])) {
     $id_producto_editar = $_GET['id'];
 
-    // Consulta para seleccionar el producto por su ID
-    // Usa 'id' ya que la tabla HTML usa 'id' en el HTMLspecialchars y el error en la imagen
     $query = "SELECT id, nombre_producto, stock_actual, precio_venta FROM productos WHERE id = ?";
-    $stmt = mysqli_prepare($conex, $query); // CORRECCIÓN: Usar $conex
+    $stmt = mysqli_prepare($conn, $query);
 
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $id_producto_editar);
@@ -77,11 +71,12 @@ if (isset($_GET['id'])) {
         }
         mysqli_stmt_close($stmt);
     } else {
-        echo '<script>alert("Error al preparar la consulta de selección: ' . addslashes(mysqli_error($conex)) . '"); window.location.href = "productos.php";</script>'; // CORRECCIÓN: Usar $conex
+        echo '<script>alert("Error al preparar la consulta de selección: ' . addslashes(mysqli_error($conn)) . '"); window.location.href = "productos.php";</script>';
         exit();
     }
 } else {
     // Si no se proporcionó un ID al cargar la página (por ejemplo, alguien escribe la URL directamente sin ID), redirigir.
+    // Este es el mensaje que veías antes.
     echo '<script>alert("No se especificó un producto para editar."); window.location.href = "productos.php";</script>';
     exit();
 }

@@ -1,103 +1,127 @@
 <?php
-// registrar_venta.php
-header('Content-Type: application/json'); // ¡IMPORTANTE: DEBE SER LA PRIMERA SALIDA!
-require_once("../conexion/conex.php"); // Incluye el archivo de conexión
+// C:\xampp\htdocs\sistema_farmacia\paginas\registrar_venta.php
+
+// Asegúrate de que este include define $conn como tu objeto de conexión MySQLi
+include '../conexion/conex.php';
+
+// Es crucial enviar esta cabecera para que el frontend espere JSON.
+// DESPUÉS de depurar, descomenta esta línea.
+header('Content-Type: application/json');
+
+// Descomenta solo para depurar si el problema persiste y quieres ver errores HTML
+// ini_set('display_errors', 1);
+// error_reporting(E_ALL); // Añade esta línea para ver todas las advertencias y errores
+
 
 $response = ['success' => false, 'message' => ''];
-$conex->begin_transaction(); // Iniciar una transacción
 
-try {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception("Error al decodificar JSON: " . json_last_error_msg());
+    // Es importante validar que 'productos' exista y sea un array
+    if (empty($data) || !isset($data['productos']) || !is_array($data['productos'])) {
+        $response['message'] = 'Datos de productos no válidos o vacíos.';
+        echo json_encode($response);
+        exit();
     }
 
-    $productos_venta = $data['productos'] ?? [];
-
-    if (empty($productos_venta)) {
-        throw new Exception("No se recibieron productos para la venta.");
+    $totalVenta = 0;
+    foreach ($data['productos'] as $producto) {
+        // Asegúrate de que los datos recibidos tienen las claves correctas
+        if (!isset($producto['cantidad']) || !isset($producto['precio_unitario'])) {
+            $response['message'] = 'Datos incompletos para un producto en el carrito.';
+            echo json_encode($response);
+            exit();
+        }
+        $totalVenta += $producto['cantidad'] * $producto['precio_unitario'];
     }
 
-    $totalVentaCalculado = 0;
-    foreach ($productos_venta as $item) {
-        $totalVentaCalculado += ($item['cantidad'] * $item['precio_unitario']);
-    }
+    // --- Inicio de la Transacción con MySQLi ---
+    // Usa $conn en lugar de $pdo
+    // Esta es la línea que estaba causando el error en la línea 24 (si no cambiaste el código)
+    $conn->begin_transaction();
 
-    // 1. Insertar la venta principal en la tabla 'ventas'
-    // Asegúrate de que tu tabla 'ventas' tiene 'id_venta', 'fecha_venta', 'total_venta'
-    $query_insert_venta = "INSERT INTO ventas (fecha_venta, total_venta) VALUES (NOW(), ?)";
-    $stmt_venta_principal = mysqli_prepare($conex, $query_insert_venta);
-    
-    if (!$stmt_venta_principal) {
-        throw new Exception("Error al preparar inserción de venta principal: " . mysqli_error($conex));
-    }
-    
-    mysqli_stmt_bind_param($stmt_venta_principal, "d", $totalVentaCalculado); // 'd' para decimal/double
-    
-    if (!mysqli_stmt_execute($stmt_venta_principal)) {
-        throw new Exception("Error al registrar la venta principal: " . mysqli_error($conex));
-    }
-    
-    $id_venta_generada = mysqli_insert_id($conex); // Obtener el ID de la venta recién insertada
-    mysqli_stmt_close($stmt_venta_principal);
+    try {
+        // 1. Insertar la venta principal
+        // Asegúrate de que tu tabla 'ventas' tiene una columna 'total_venta' y no solo 'total'
+        // Si tu columna es 'total', cámbialo aquí.
+        $stmtVenta = $conn->prepare("INSERT INTO ventas (total) VALUES (?)"); // Asumo 'total_venta'
+        if ($stmtVenta === false) {
+             throw new Exception("Error al preparar la inserción de venta: " . $conn->error);
+        }
+        $stmtVenta->bind_param("d", $totalVenta); // 'd' para decimal/double
+        $stmtVenta->execute();
+        $idVenta = $conn->insert_id; // Para MySQLi, usa $conn->insert_id
+        $stmtVenta->close();
 
-    // 2. Insertar cada producto en la tabla 'detalle_ventas' y actualizar el stock
-    foreach ($productos_venta as $item) {
-        $id_producto_en_carrito = $item['id'] ?? null;
-        $cantidad_vendida = $item['cantidad'] ?? null;
-        $precio_unitario_carrito = $item['precio_unitario'] ?? null;
-        $subtotal_item = $cantidad_vendida * $precio_unitario_carrito;
-
-        if (is_null($id_producto_en_carrito) || is_null($cantidad_vendida) || is_null($precio_unitario_carrito)) {
-            throw new Exception("Datos incompletos para un producto en el carrito.");
+        // 2. Insertar los detalles de la venta y actualizar el stock
+        $stmtDetalle = $conn->prepare("INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
+        if ($stmtDetalle === false) {
+             throw new Exception("Error al preparar la inserción de detalle: " . $conn->error);
         }
 
-        // Insertar en detalle_ventas
-        // Asegúrate de que tu tabla 'detalle_ventas' tiene 'id_venta', 'id_producto', 'cantidad', 'precio_unitario', 'subtotal'
-        $query_insert_detalle = "INSERT INTO detalle_ventas (id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
-        $stmt_detalle = mysqli_prepare($conex, $query_insert_detalle);
-        
-        if (!$stmt_detalle) {
-            throw new Exception("Error al preparar inserción de detalle de venta: " . mysqli_error($conex));
+        // Importante: verificar stock y actualizar
+        // Usamos stock_actual como en tu tabla 'productos'
+        $stmtUpdateStock = $conn->prepare("UPDATE productos SET stock_actual = stock_actual - ? WHERE id = ? AND stock_actual >= ?");
+        if ($stmtUpdateStock === false) {
+             throw new Exception("Error al preparar la actualización de stock: " . $conn->error);
         }
-        
-        // 'i' para int, 'i' para int, 'd' para decimal, 'd' para decimal
-        mysqli_stmt_bind_param($stmt_detalle, "iiidd", $id_venta_generada, $id_producto_en_carrito, $cantidad_vendida, $precio_unitario_carrito, $subtotal_item);
-        
-        if (!mysqli_stmt_execute($stmt_detalle)) {
-            throw new Exception("Error al registrar detalle para producto ID " . $id_producto_en_carrito . ": " . mysqli_error($conex));
-        }
-        mysqli_stmt_close($stmt_detalle);
 
-        // Actualizar stock_actual en la tabla 'productos'
-        $query_update_stock = "UPDATE productos SET stock_actual = stock_actual - ? WHERE id = ?";
-        $stmt_stock = mysqli_prepare($conex, $query_update_stock);
-        
-        if (!$stmt_stock) {
-            throw new Exception("Error al preparar actualización de stock: " . mysqli_error($conex));
+
+        foreach ($data['productos'] as $producto) {
+            // Verificar stock antes de vender
+            // Asumo que tu tabla 'productos' tiene una columna 'stock_actual'
+            $stmtCheckStock = $conn->prepare("SELECT stock_actual FROM productos WHERE id = ?");
+            if ($stmtCheckStock === false) {
+                 throw new Exception("Error al preparar la verificación de stock: " . $conn->error);
+            }
+            $stmtCheckStock->bind_param("i", $producto['id']);
+            $stmtCheckStock->execute();
+            $resultCheckStock = $stmtCheckStock->get_result();
+            $currentStock = $resultCheckStock->fetch_assoc()['stock_actual'] ?? 0; // Usar fetch_assoc() para MySQLi
+            $stmtCheckStock->close();
+
+            if ($currentStock < $producto['cantidad']) {
+                // Si hay stock insuficiente, hacemos rollback y enviamos mensaje
+                $conn->rollback();
+                $response['message'] = 'Stock insuficiente para el producto: ' . htmlspecialchars($producto['nombre']) . '. Stock disponible: ' . $currentStock;
+                echo json_encode($response);
+                exit(); // Salir para que no continúe el bucle
+            }
+
+            $subtotal = $producto['cantidad'] * $producto['precio_unitario'];
+
+            // Insertar detalle de la venta
+            $stmtDetalle->bind_param("iiidd", $idVenta, $producto['id'], $producto['cantidad'], $producto['precio_unitario'], $subtotal); // iiidd: int, int, int, double, double
+            $stmtDetalle->execute();
+
+            // Descontar el stock
+            $stmtUpdateStock->bind_param("iii", $producto['cantidad'], $producto['id'], $producto['cantidad']); // int, int, int
+            $stmtUpdateStock->execute();
         }
-        
-        mysqli_stmt_bind_param($stmt_stock, "ii", $cantidad_vendida, $id_producto_en_carrito);
-        
-        if (!mysqli_stmt_execute($stmt_stock)) {
-            throw new Exception("Error al actualizar stock para producto ID " . $id_producto_en_carrito . ": " . mysqli_error($conex));
-        }
-        mysqli_stmt_close($stmt_stock);
+
+        // Si todo salió bien, confirmar la transacción
+        $conn->commit();
+        $response['success'] = true;
+        $response['message'] = 'Venta registrada con éxito. ¡Stock actualizado! 👍';
+
+    } catch (Exception $e) { // Usamos Exception general para capturar errores de MySQLi
+        // Si algo falla, deshacer la transacción
+        $conn->rollback();
+        $response['message'] = 'Error al registrar la venta: ' . $e->getMessage();
+        // Puedes loggear el error para depuración
+        // error_log('Error en registrar_venta.php: ' . $e->getMessage());
+    } finally {
+        // Asegúrate de cerrar las sentencias preparadas
+        if (isset($stmtVenta) && $stmtVenta !== false) $stmtVenta->close();
+        if (isset($stmtDetalle) && $stmtDetalle !== false) $stmtDetalle->close();
+        if (isset($stmtUpdateStock) && $stmtUpdateStock !== false) $stmtUpdateStock->close();
+        if (isset($stmtCheckStock) && $stmtCheckStock !== false) $stmtCheckStock->close();
     }
 
-    $conex->commit(); // Confirmar la transacción
-    $response['success'] = true;
-    $response['message'] = "Venta registrada exitosamente con ID: " . $id_venta_generada;
-
-} catch (Exception $e) {
-    $conex->rollback(); // Revertir la transacción si algo falla
-    $response['message'] = "Error en la transacción: " . $e->getMessage();
-    error_log("Error en registrar_venta.php: " . $e->getMessage()); // Registra el error para depuración
-    http_response_code(500); // Internal Server Error
-} finally {
-    // if ($conex) mysqli_close($conex); // Puedes descomentar si quieres cerrar explícitamente
-    echo json_encode($response);
-    exit(); // Asegura que no se imprima nada más
+} else {
+    $response['message'] = 'Método no permitido.';
 }
+
+echo json_encode($response);
 ?>

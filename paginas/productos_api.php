@@ -1,48 +1,42 @@
 <?php
-// Habilitar la visualización de errores para depuración (QUÍTALA EN PRODUCCIÓN)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Asegúrate de que esta línea esté al principio, antes de cualquier HTML, espacio en blanco, o "echo"
+header('Content-Type: application/json'); // ¡Añade esta línea!
 
-// Establece el encabezado para que el navegador sepa que la respuesta es JSON
-header('Content-Type: application/json');
-
-include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD, que debe definir $conex
-
-$response = ['error' => ''];
+include '../conexion/conex.php';
 
 if (isset($_GET['query'])) {
-    $search_query = '%' . $_GET['query'] . '%';
+    $query = $_GET['query'];
 
-    // Consulta para buscar productos por nombre o ID y obtener stock y precio
-    // Asegúrate de que los nombres de las columnas coincidan con tu tabla 'productos'
-    // Asumo que el ID es 'id' y el nombre es 'nombre_producto'
-    $query = "SELECT id, nombre_producto, stock_actual, precio_venta FROM productos WHERE nombre_producto LIKE ? OR id LIKE ? LIMIT 10";
-    $stmt = mysqli_prepare($conex, $query); // CORRECCIÓN: Usar $conex
+    // Si tu columna es 'nombre_producto' en la DB, asegúrate de usarla aquí
+    $stmt = $conn->prepare("SELECT id, nombre_producto, precio_venta, stock_actual FROM productos WHERE nombre_producto LIKE ? LIMIT 10");
 
-    if ($stmt) {
-        // "ss" porque hay dos parámetros string (aunque uno sea LIKE un número, se trata como string en LIKE)
-        mysqli_stmt_bind_param($stmt, "ss", $search_query, $search_query);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-
-        $productos = [];
-        while ($row = mysqli_fetch_assoc($result)) {
-            // Convertir valores numéricos a su tipo correcto para JSON
-            $row['stock_actual'] = (int)$row['stock_actual'];
-            $row['precio_venta'] = (float)$row['precio_venta'];
-            $productos[] = $row;
-        }
-        mysqli_stmt_close($stmt);
-        echo json_encode($productos);
-        exit(); // Terminar el script después de enviar la respuesta JSON
-    } else {
-        $response['error'] = "Error al preparar la consulta de búsqueda: " . mysqli_error($conex); // CORRECCIÓN: Usar $conex
+    if ($stmt === false) {
+        // Enviar un JSON de error si la preparación falla
+        echo json_encode(['error' => 'Error al preparar la consulta: ' . $conn->error]);
+        exit();
     }
-} else {
-    $response['error'] = "No se proporcionó una consulta de búsqueda.";
-}
 
-// Si hubo un error o no se proporcionó query, enviar la respuesta de error
-echo json_encode($response);
+    $param = "%" . $query . "%";
+    $stmt->bind_param("s", $param);
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result === false) {
+        // Enviar un JSON de error si la ejecución o obtención de resultados falla
+        echo json_encode(['error' => 'Error al obtener resultados: ' . $stmt->error]);
+        exit();
+    }
+
+    $productos = [];
+    while ($row = $result->fetch_assoc()) {
+        $productos[] = $row;
+    }
+
+    $stmt->close();
+    echo json_encode($productos); // Esto ya imprime el JSON
+} else {
+    // Si no hay 'query', también es una buena práctica devolver JSON
+    echo json_encode([]); // Devolver un array vacío
+}
 ?>

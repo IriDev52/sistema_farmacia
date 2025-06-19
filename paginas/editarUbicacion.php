@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
 include("../recursos/header.php"); // Incluye tu cabecera HTML y CSS
-include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD, que debe definir $conex
+include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD
 
 $id_ubicacion_editar = null; // Variable para almacenar el ID de la ubicación a editar
 $ubicacion = null; // Variable para almacenar los datos de la ubicación
@@ -26,7 +26,7 @@ if (isset($_POST['actualizar_ubicacion'])) {
     // Preparar la consulta UPDATE
     // Se utiliza una sentencia preparada para seguridad (previene inyección SQL)
     $query = "UPDATE ubicacion SET descripcion_ubicacion = ? WHERE id_ubicacion = ?";
-    $stmt = mysqli_prepare($conex, $query); // CORRECCIÓN: Usar $conex
+    $stmt = mysqli_prepare($conn, $query);
 
     // Verificar si la preparación de la consulta fue exitosa
     if ($stmt) {
@@ -41,13 +41,13 @@ if (isset($_POST['actualizar_ubicacion'])) {
             exit(); // Detiene la ejecución del script
         } else {
             // Si hubo un error en la ejecución, mostrarlo
-            echo '<script>alert("Error al actualizar la ubicación: ' . addslashes(mysqli_error($conex)) . '"); window.history.back();</script>'; // CORRECCIÓN: Usar $conex
+            echo '<script>alert("Error al actualizar la ubicación: ' . addslashes(mysqli_error($conn)) . '"); window.history.back();</script>';
             exit();
         }
         mysqli_stmt_close($stmt); // Cerrar la sentencia preparada
     } else {
         // Si la preparación de la consulta falló, mostrar error
-        echo '<script>alert("Error al preparar la consulta de actualización: ' . addslashes(mysqli_error($conex)) . '"); window.history.back();</script>'; // CORRECCIÓN: Usar $conex
+        echo '<script>alert("Error al preparar la consulta de actualización: ' . addslashes(mysqli_error($conn)) . '"); window.history.back();</script>';
         exit();
     }
 }
@@ -59,7 +59,7 @@ if (isset($_GET['id'])) {
 
     // Consulta para seleccionar la descripción de la ubicación por su ID
     $query = "SELECT id_ubicacion, descripcion_ubicacion FROM ubicacion WHERE id_ubicacion = ?";
-    $stmt = mysqli_prepare($conex, $query); // CORRECCIÓN: Usar $conex
+    $stmt = mysqli_prepare($conn, $query);
 
     // Verificar si la preparación de la consulta fue exitosa
     if ($stmt) {
@@ -80,7 +80,7 @@ if (isset($_GET['id'])) {
         mysqli_stmt_close($stmt); // Cerrar la sentencia preparada
     } else {
         // Si la preparación de la consulta falló, mostrar error
-        echo '<script>alert("Error al preparar la consulta de selección: ' . addslashes(mysqli_error($conex)) . '"); window.location.href = "ubicacion.php";</script>'; // CORRECCIÓN: Usar $conex
+        echo '<script>alert("Error al preparar la consulta de selección: ' . addslashes(mysqli_error($conn)) . '"); window.location.href = "ubicacion.php";</script>';
         exit();
     }
 } else {

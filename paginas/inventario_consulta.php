@@ -1,6 +1,6 @@
 <?php
 include("../recursos/header.php"); // Incluye tu cabecera HTML y CSS (asegúrate de que incluya Bootstrap JS y CSS)
-include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD, que ahora define $conex
+include("../conexion/conex.php"); // Incluye tu archivo de conexión a la BD
 
 // --- Lógica para procesar el formulario de registro de entrada (dentro del modal) ---
 if (isset($_POST['registrar_entrada'])) {
@@ -13,16 +13,14 @@ if (isset($_POST['registrar_entrada'])) {
     if (empty($id_producto) || empty($id_ubicacion) || !is_numeric($cantidad_entrada) || $cantidad_entrada <= 0) {
         echo '<script>alert("Por favor, complete todos los campos y asegúrese de que la cantidad sea un número positivo.");</script>';
     } else {
-        // Asegúrate de usar $conex aquí, que es la variable de conexión de tu archivo incluido.
-        mysqli_begin_transaction($conex); 
+        mysqli_begin_transaction($conn);
         $success = true;
         $message = "";
 
         try {
             // 1. Verificar si la combinación producto-ubicación ya existe en producto_ubicacion
             $check_query = "SELECT cantidad FROM producto_ubicacion WHERE ID_Producto = ? AND ID_Ubicacion = ?";
-            // Usamos $conex en mysqli_prepare
-            $stmt_check = mysqli_prepare($conex, $check_query); 
+            $stmt_check = mysqli_prepare($conn, $check_query);
             mysqli_stmt_bind_param($stmt_check, "ii", $id_producto, $id_ubicacion);
             mysqli_stmt_execute($stmt_check);
             mysqli_stmt_bind_result($stmt_check, $current_cantidad_en_ubicacion);
@@ -32,8 +30,7 @@ if (isset($_POST['registrar_entrada'])) {
             if ($current_cantidad_en_ubicacion !== null) { // Si ya existe la combinación
                 $new_cantidad_en_ubicacion = $current_cantidad_en_ubicacion + $cantidad_entrada;
                 $update_pu_query = "UPDATE producto_ubicacion SET cantidad = ? WHERE ID_Producto = ? AND ID_Ubicacion = ?";
-                // Usamos $conex en mysqli_prepare
-                $stmt_pu = mysqli_prepare($conex, $update_pu_query); 
+                $stmt_pu = mysqli_prepare($conn, $update_pu_query);
                 mysqli_stmt_bind_param($stmt_pu, "iii", $new_cantidad_en_ubicacion, $id_producto, $id_ubicacion);
                 if (!mysqli_stmt_execute($stmt_pu)) {
                     $success = false;
@@ -42,8 +39,7 @@ if (isset($_POST['registrar_entrada'])) {
                 mysqli_stmt_close($stmt_pu);
             } else { // Si la combinación no existe, insertar
                 $insert_pu_query = "INSERT INTO producto_ubicacion (ID_Producto, ID_Ubicacion, cantidad) VALUES (?, ?, ? )";
-                // Usamos $conex en mysqli_prepare
-                $stmt_pu = mysqli_prepare($conex, $insert_pu_query); 
+                $stmt_pu = mysqli_prepare($conn, $insert_pu_query);
                 mysqli_stmt_bind_param($stmt_pu, "iis", $id_producto, $id_ubicacion, $cantidad_entrada);
                 if (!mysqli_stmt_execute($stmt_pu)) {
                     $success = false;
@@ -54,9 +50,8 @@ if (isset($_POST['registrar_entrada'])) {
 
             // 2. Actualizar el stock_actual total en la tabla prductos
             if ($success) {
-                $update_p_query = "UPDATE productos SET stock_actual = stock_actual + ? WHERE id = ?";
-                // Usamos $conex en mysqli_prepare
-                $stmt_p = mysqli_prepare($conex, $update_p_query); 
+                $update_p_query = "UPDATE prductos SET stock_actual = stock_actual + ? WHERE id = ?";
+                $stmt_p = mysqli_prepare($conn, $update_p_query);
                 mysqli_stmt_bind_param($stmt_p, "ii", $cantidad_entrada, $id_producto);
                 if (!mysqli_stmt_execute($stmt_p)) {
                     $success = false;
@@ -67,18 +62,15 @@ if (isset($_POST['registrar_entrada'])) {
 
             // 3. Confirmar o revertir la transacción
             if ($success) {
-                // Usamos $conex en mysqli_commit
-                mysqli_commit($conex); 
+                mysqli_commit($conn);
                 echo '<script>alert("Entrada de stock registrada correctamente."); window.location.href = "inventario_consulta.php";</script>';
             } else {
-                // Usamos $conex en mysqli_rollback
-                mysqli_rollback($conex); 
+                mysqli_rollback($conn);
                 echo '<script>alert("' . $message . ' Error al registrar la entrada de stock. Por favor, intente de nuevo.");</script>';
             }
 
         } catch (Exception $e) {
-            // Usamos $conex en mysqli_rollback
-            mysqli_rollback($conex); 
+            mysqli_rollback($conn);
             echo '<script>alert("Error inesperado: ' . $e->getMessage() . '");</script>';
         }
     }
@@ -87,28 +79,27 @@ if (isset($_POST['registrar_entrada'])) {
 // --- Obtener productos y ubicaciones para los selectores del modal ---
 $productos = [];
 $query_productos = "SELECT id, nombre_producto FROM productos ORDER BY nombre_producto";
-// Usamos $conex en mysqli_query
-$result_productos = mysqli_query($conex, $query_productos); 
+$result_productos = mysqli_query($conn, $query_productos);
 if ($result_productos) {
     while ($row = mysqli_fetch_assoc($result_productos)) {
         $productos[] = $row;
     }
 } else {
-    // Usamos $conex en mysqli_error
-    die("Error al cargar productos para el modal: " . mysqli_error($conex)); 
+    // Si falla la carga de productos, muere y muestra el error.
+    // Esto es más un error de desarrollo, en producción se manejaría mejor.
+    die("Error al cargar productos para el modal: " . mysqli_error($conn));
 }
 
 $ubicaciones = [];
 $query_ubicaciones = "SELECT id_ubicacion, descripcion_ubicacion FROM ubicacion ORDER BY descripcion_ubicacion";
-// Usamos $conex en mysqli_query
-$result_ubicaciones = mysqli_query($conex, $query_ubicaciones); 
+$result_ubicaciones = mysqli_query($conn, $query_ubicaciones);
 if ($result_ubicaciones) {
     while ($row = mysqli_fetch_assoc($result_ubicaciones)) {
         $ubicaciones[] = $row;
     }
 } else {
-    // Usamos $conex en mysqli_error
-    die("Error al cargar ubicaciones para el modal: " . mysqli_error($conex)); 
+    // Si falla la carga de ubicaciones, muere y muestra el error.
+    die("Error al cargar ubicaciones para el modal: " . mysqli_error($conn));
 }
 
 ?>
@@ -134,6 +125,7 @@ if ($result_ubicaciones) {
                         <th scope="col">Producto</th>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Cantidad</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -153,12 +145,10 @@ if ($result_ubicaciones) {
                             p.nombre_producto, u.descripcion_ubicacion;
                     ";
 
-                    // Usamos $conex en mysqli_query
-                    $resultado_inventario = mysqli_query($conex, $query_inventario); 
+                    $resultado_inventario = mysqli_query($conn, $query_inventario);
 
                     if (!$resultado_inventario) {
-                        // Usamos $conex en mysqli_error
-                        die("Error al consultar el inventario: " . mysqli_error($conex)); 
+                        die("Error al consultar el inventario: " . mysqli_error($conn));
                     }
 
                     if (mysqli_num_rows($resultado_inventario) > 0) {
@@ -168,6 +158,7 @@ if ($result_ubicaciones) {
                                 <td><?php echo htmlspecialchars($row['nombre_producto']); ?></td>
                                 <td><?php echo htmlspecialchars($row['nombre_ubicacion']); ?></td>
                                 <td><?php echo htmlspecialchars($row['cantidad']); ?></td>
+                               
                             </tr>
                             <?php
                         }
@@ -194,8 +185,8 @@ if ($result_ubicaciones) {
                         <select class="form-select" id="modal_id_producto" name="id_producto" required>
                             <option value="">-- Seleccione un Producto --</option>
                             <?php foreach ($productos as $producto): ?>
-                                <option value="<?php echo htmlspecialchars($producto['id']); ?>"> 
-                                    <?php echo htmlspecialchars($producto['nombre_producto']); ?>
+                                <option value="<?php echo htmlspecialchars($productos['id']); ?>">
+                                    <?php echo htmlspecialchars($productos['nombre_producto']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -218,6 +209,11 @@ if ($result_ubicaciones) {
                         <input type="number" class="form-control" id="modal_cantidad" name="cantidad" min="1" required>
                     </div>
 
+                  <!--   <div class="mb-3">
+                        <label for="modal_fecha_vencimiento" class="form-label">Fecha de Vencimiento (Opcional):</label>
+                        <input type="date" class="form-control" id="modal_fecha_vencimiento" name="fecha_vencimiento">
+                    </div> -->
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="submit" class="btn btn-success" name="registrar_entrada">Registrar Entrada</button>
@@ -229,3 +225,4 @@ if ($result_ubicaciones) {
 </div>
 
 <?php include("../recursos/footer.php"); // Incluye tu pie de página HTML y scripts ?>
+

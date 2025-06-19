@@ -1,22 +1,6 @@
-<?php
-// No es estrictamente necesario incluir conex.php aquí si no realizas operaciones directas de BD
-// pero si lo tienes para alguna otra funcionalidad, no hay problema.
-include("../conexion/conex.php"); 
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario - Registrar Venta</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> 
-    <link rel="stylesheet" href="../recursos/estilos/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
-    
+
+<?php  include("../recursos/header.php")?>
+
 <div class="container mt-4">
     <h2><i class="fas fa-cash-register"></i> Registrar Venta</h2>
     <hr>
@@ -39,7 +23,7 @@ include("../conexion/conex.php");
                     </tr>
                 </thead>
                 <tbody id="productosVenta">
-                </tbody>
+                    </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-end"><strong>Total:</strong></td>
@@ -55,11 +39,6 @@ include("../conexion/conex.php");
         </div>
     </form>
 </div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const buscarProductoInput = document.getElementById('buscarProducto');
@@ -68,8 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalVentaSpan = document.getElementById('totalVenta');
     const formVenta = document.getElementById('formVenta');
 
-    let carrito = [];
+    let carrito = []; // Almacenará los productos en el carrito
 
+    // Función para actualizar el total de la venta
     function actualizarTotal() {
         let total = 0;
         carrito.forEach(producto => {
@@ -78,8 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
         totalVentaSpan.textContent = total.toFixed(2);
     }
 
+    // Función para renderizar la tabla de productos en la venta
     function renderizarCarrito() {
-        productosVentaBody.innerHTML = '';
+        productosVentaBody.innerHTML = ''; // Limpiar tabla
         carrito.forEach((producto, index) => {
             const row = productosVentaBody.insertRow();
             row.innerHTML = `
@@ -97,184 +78,129 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarTotal();
     }
 
-    productosVentaBody.addEventListener('change', function(e) {
-        if (e.target.classList.contains('cantidad-input')) {
-            const index = parseInt(e.target.dataset.index);
-            let nuevaCantidad = parseInt(e.target.value);
-
-            if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
-                nuevaCantidad = 1;
-                e.target.value = 1;
-            }
-
-            const productoEnCarrito = carrito[index];
-            if (productoEnCarrito) {
-                if (nuevaCantidad > productoEnCarrito.stock_disponible) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Stock Insuficiente',
-                        text: `No puedes añadir más de ${productoEnCarrito.nombre} de lo que hay en stock (${productoEnCarrito.stock_disponible} unidades).`,
-                        confirmButtonText: 'Entendido'
-                    });
-                    e.target.value = productoEnCarrito.stock_disponible;
-                    productoEnCarrito.cantidad = productoEnCarrito.stock_disponible;
-                } else {
-                    productoEnCarrito.cantidad = nuevaCantidad;
-                }
-                renderizarCarrito();
-            }
-        }
-    });
-
-    productosVentaBody.addEventListener('click', function(e) {
-        if (e.target.classList.contains('eliminar-producto') || e.target.closest('.eliminar-producto')) {
-            const button = e.target.closest('.eliminar-producto');
-            const index = parseInt(button.dataset.index);
-            carrito.splice(index, 1);
-            renderizarCarrito();
-        }
-    });
-
+    // Evento para buscar productos (autocompletado)
     buscarProductoInput.addEventListener('input', function() {
         const query = this.value.trim();
         sugerenciasProductosDiv.innerHTML = '';
 
-        if (query.length > 2) {
+        if (query.length > 2) { // Mínimo 3 caracteres para buscar
             fetch(`productos_api.php?query=${encodeURIComponent(query)}`)
                 .then(response => {
-                    if (!response.ok) {
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.includes("application/json")) {
+                        return response.json();
+                    } else {
                         return response.text().then(text => {
-                            console.error('Error HTTP en productos_api.php:', text);
-                            throw new Error(`La API de búsqueda de productos devolvió un error ${response.status}. Respuesta: ${text.substring(0, 200)}...`);
+                            console.error('La respuesta no es JSON (o content-type incorrecto):', text);
+                            throw new Error('La respuesta del servidor no es JSON o tiene un Content-Type inesperado. Revisa el archivo productos_api.php');
                         });
                     }
-                    return response.json();
                 })
                 .then(data => {
                     if (data.error) {
-                        Swal.fire('Error', 'Error del servidor al buscar productos: ' + data.error, 'error');
+                        alert('Error del servidor: ' + data.error);
                         return;
                     }
+
                     if (data.length > 0) {
                         data.forEach(producto => {
                             const item = document.createElement('a');
                             item.href = '#';
                             item.classList.add('list-group-item', 'list-group-item-action');
+                            // AQUI: Usas 'nombre_producto' para mostrarlo en las sugerencias, ¡esto está bien!
                             item.textContent = `${producto.nombre_producto} (Stock: ${producto.stock_actual})`;
                             item.addEventListener('click', function(e) {
                                 e.preventDefault();
+                                // Añadir producto al carrito
                                 const existe = carrito.find(p => p.id === producto.id);
                                 if (existe) {
-                                    if (existe.cantidad + 1 > producto.stock_actual) {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'Stock Insuficiente',
-                                            text: `No hay suficiente stock para añadir más de ${producto.nombre_producto}. Stock disponible: ${producto.stock_actual}`,
-                                            confirmButtonText: 'Entendido'
-                                        });
-                                        return;
-                                    }
+                                    // Asegúrate de que la cantidad no exceda el stock disponible si lo validas en frontend
+                                    // if (existe.cantidad + 1 > producto.stock_actual) {
+                                    //     alert(`No hay suficiente stock para añadir más de ${producto.nombre_producto}.`);
+                                    //     return;
+                                    // }
                                     existe.cantidad++;
                                 } else {
+                                    // Validar si el stock es 0 antes de añadir
                                     if (producto.stock_actual <= 0) {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            title: 'Sin Stock',
-                                            text: `El producto ${producto.nombre_producto} no tiene stock disponible.`,
-                                            confirmButtonText: 'Entendido'
-                                        });
+                                        alert(`El producto ${producto.nombre_producto} no tiene stock disponible.`);
                                         return;
                                     }
                                     carrito.push({
                                         id: producto.id,
+                                        // ****** LA CLAVE ESTÁ AQUÍ ******
+                                        // Asigna el valor de 'nombre_producto' que viene del servidor
+                                        // a la propiedad 'nombre' de tu objeto local en el carrito.
                                         nombre: producto.nombre_producto,
+                                        // *******************************
                                         precio_unitario: parseFloat(producto.precio_venta),
                                         cantidad: 1,
                                         stock_disponible: producto.stock_actual
                                     });
                                 }
                                 renderizarCarrito();
-                                buscarProductoInput.value = '';
-                                sugerenciasProductosDiv.innerHTML = '';
+                                buscarProductoInput.value = ''; // Limpiar input
+                                sugerenciasProductosDiv.innerHTML = ''; // Limpiar sugerencias
                             });
                             sugerenciasProductosDiv.appendChild(item);
                         });
                     }
                 })
-                .catch(error => {
-                    console.error('Error en la petición de búsqueda de productos:', error);
-                    Swal.fire('Error', 'Ocurrió un error al buscar productos. Consulta la consola para más detalles.', 'error');
-                });
+                .catch(error => console.error('Error al obtener productos:', error));
         }
     });
-
+    // Evento para enviar la venta
     formVenta.addEventListener('submit', function(e) {
-        e.preventDefault();
+        e.preventDefault(); // <-- ¡ESTA LÍNEA ES CRUCIAL!
 
         if (carrito.length === 0) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Carrito Vacío',
-                text: '¡No hay productos en la venta! 😕',
-                confirmButtonText: 'Ok'
-            });
+            alert('¡No hay productos en la venta! 😕');
             return;
         }
 
-        Swal.fire({
-            title: 'Confirmar Venta',
-            text: '¿Está seguro de que desea registrar esta venta?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, registrar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch('registrar_venta.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ productos: carrito })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => {
-                            console.error('Error HTTP en registrar_venta.php (backend):', text);
-                            throw new Error(`La API de registro de venta devolvió un error ${response.status}. Respuesta: ${text.substring(0, 200)}...`);
-                        });
-                    }
+        if (confirm('¿Está seguro de que desea registrar esta venta?')) {
+            fetch('registrar_venta.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productos: carrito })
+            })
+            .then(response => {
+                // Asegúrate de que la respuesta sea JSON o text para depurar
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
                     return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire(
-                            '¡Venta Exitosa!',
-                            data.message,
-                            'success'
-                        );
-                        carrito = [];
-                        renderizarCarrito();
-                    } else {
-                        Swal.fire(
-                            'Error al Registrar',
-                            data.message,
-                            'error'
-                        );
-                    }
-                })
-                .catch(error => {
-                    console.error('Error en la petición de registro de venta:', error);
-                    Swal.fire(
-                        'Error',
-                        'Ocurrió un error al registrar la venta. Consulta la consola para más detalles.',
-                        'error'
-                    );
-                });
-            }
-        });
+                } else {
+                    return response.text().then(text => {
+                        console.error('La respuesta de registrar_venta.php no es JSON o tiene un Content-Type inesperado:', text);
+                        throw new Error('Error en la respuesta del servidor al registrar la venta. Revisa registrar_venta.php');
+                    });
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    carrito = []; // Limpiar carrito
+                    renderizarCarrito(); // Limpiar tabla
+                    // Opcional: Redirigir a una página de confirmación o de listado de ventas
+                } else {
+                    alert('Error al registrar venta: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error al registrar la venta (catch):', error);
+                alert('Ocurrió un error al registrar la venta. Consulta la consola para más detalles.');
+            });
+        }
     });
+
+    // ... (El resto del código JavaScript sigue igual) ...
+    // Aquí es donde ya usas producto.nombre, que ahora sí tendrá el valor correcto
+    // renderizarCarrito() {
+    //     row.innerHTML = `<td>${producto.nombre}</td>...`
+    // }
+    // ...
 });
 </script>
+<?php  include("../recursos/footer.php")?>
