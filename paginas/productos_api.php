@@ -1,42 +1,34 @@
 <?php
-// Asegúrate de que esta línea esté al principio, antes de cualquier HTML, espacio en blanco, o "echo"
-header('Content-Type: application/json'); // ¡Añade esta línea!
+include("../conexion/conex.php");
 
-include '../conexion/conex.php';
+header('Content-Type: application/json');
 
-if (isset($_GET['query'])) {
-    $query = $_GET['query'];
+$query_param = isset($_GET['query']) ? $_GET['query'] : '';
 
-    // Si tu columna es 'nombre_producto' en la DB, asegúrate de usarla aquí
-    $stmt = $conn->prepare("SELECT id, nombre_producto, precio_venta, stock_actual FROM productos WHERE nombre_producto LIKE ? LIMIT 10");
-
-    if ($stmt === false) {
-        // Enviar un JSON de error si la preparación falla
-        echo json_encode(['error' => 'Error al preparar la consulta: ' . $conn->error]);
-        exit();
-    }
-
-    $param = "%" . $query . "%";
-    $stmt->bind_param("s", $param);
-
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result === false) {
-        // Enviar un JSON de error si la ejecución o obtención de resultados falla
-        echo json_encode(['error' => 'Error al obtener resultados: ' . $stmt->error]);
-        exit();
-    }
-
-    $productos = [];
-    while ($row = $result->fetch_assoc()) {
-        $productos[] = $row;
-    }
-
-    $stmt->close();
-    echo json_encode($productos); // Esto ya imprime el JSON
-} else {
-    // Si no hay 'query', también es una buena práctica devolver JSON
-    echo json_encode([]); // Devolver un array vacío
+if (empty($query_param)) {
+    echo json_encode([]);
+    exit();
 }
+
+$search_term = "%" . $query_param . "%";
+
+$sql = "SELECT id_cliente, nombre_completo, cedula_rif FROM clientes WHERE nombre_completo LIKE ? OR cedula_rif LIKE ? LIMIT 10";
+$stmt = mysqli_prepare($conn, $sql);
+
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "ss", $search_term, $search_term);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    $clientes = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $clientes[] = $row;
+    }
+    echo json_encode($clientes);
+    mysqli_stmt_close($stmt);
+} else {
+    echo json_encode(['error' => 'Error en la preparación de la consulta de clientes: ' . mysqli_error($conn)]);
+}
+
+mysqli_close($conn);
 ?>

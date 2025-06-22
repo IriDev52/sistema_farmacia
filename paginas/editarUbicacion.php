@@ -120,4 +120,3 @@ if (!$ubicacion) {
     </div>
 </main>
 
-<?php include("../recursos/footer.php"); // Incluye tu pie de página HTML y scripts ?>

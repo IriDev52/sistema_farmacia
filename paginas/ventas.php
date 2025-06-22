@@ -1,5 +1,4 @@
-
-<?php  include("../recursos/header.php")?>
+<?php include("../recursos/header.php")?>
 
 <div class="container mt-4">
     <h2><i class="fas fa-cash-register"></i> Registrar Venta</h2>
@@ -23,7 +22,7 @@
                     </tr>
                 </thead>
                 <tbody id="productosVenta">
-                    </tbody>
+                </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-end"><strong>Total:</strong></td>
@@ -114,11 +113,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Añadir producto al carrito
                                 const existe = carrito.find(p => p.id === producto.id);
                                 if (existe) {
-                                    // Asegúrate de que la cantidad no exceda el stock disponible si lo validas en frontend
-                                    // if (existe.cantidad + 1 > producto.stock_actual) {
-                                    //     alert(`No hay suficiente stock para añadir más de ${producto.nombre_producto}.`);
-                                    //     return;
-                                    // }
+                                    // Validación básica de stock en frontend (la backend es la importante)
+                                    if (existe.cantidad + 1 > producto.stock_actual) {
+                                        alert(`No hay suficiente stock para añadir más de ${producto.nombre_producto}.`);
+                                        return;
+                                    }
                                     existe.cantidad++;
                                 } else {
                                     // Validar si el stock es 0 antes de añadir
@@ -149,9 +148,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(error => console.error('Error al obtener productos:', error));
         }
     });
+
+    // Evento para actualizar cantidad directamente en la tabla
+    productosVentaBody.addEventListener('change', function(e) {
+        if (e.target.classList.contains('cantidad-input')) {
+            const index = parseInt(e.target.dataset.index);
+            let nuevaCantidad = parseInt(e.target.value);
+
+            if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+                alert('La cantidad debe ser un número positivo.');
+                e.target.value = carrito[index].cantidad; // Revertir al valor anterior
+                return;
+            }
+
+            // Validación de stock al cambiar la cantidad
+            if (nuevaCantidad > carrito[index].stock_disponible) {
+                alert(`No hay suficiente stock para la cantidad solicitada de ${carrito[index].nombre}. Stock disponible: ${carrito[index].stock_disponible}`);
+                e.target.value = carrito[index].cantidad; // Revertir al valor anterior
+                return;
+            }
+            carrito[index].cantidad = nuevaCantidad;
+            renderizarCarrito();
+        }
+    });
+
+    // Evento para eliminar producto del carrito
+    productosVentaBody.addEventListener('click', function(e) {
+        if (e.target.closest('.eliminar-producto')) {
+            const index = parseInt(e.target.closest('.eliminar-producto').dataset.index);
+            carrito.splice(index, 1); // Eliminar del array
+            renderizarCarrito(); // Volver a renderizar
+        }
+    });
+
+
     // Evento para enviar la venta
     formVenta.addEventListener('submit', function(e) {
-        e.preventDefault(); // <-- ¡ESTA LÍNEA ES CRUCIAL!
+        e.preventDefault();
 
         if (carrito.length === 0) {
             alert('¡No hay productos en la venta! 😕');
@@ -159,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (confirm('¿Está seguro de que desea registrar esta venta?')) {
-            fetch('registrar_venta.php', {
+            fetch('registrar_venta.php', { // Asegúrate de que esta URL es correcta si el PHP está en otro archivo
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -195,12 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ... (El resto del código JavaScript sigue igual) ...
-    // Aquí es donde ya usas producto.nombre, que ahora sí tendrá el valor correcto
-    // renderizarCarrito() {
-    //     row.innerHTML = `<td>${producto.nombre}</td>...`
-    // }
-    // ...
+    
 });
 </script>
-<?php  include("../recursos/footer.php")?>

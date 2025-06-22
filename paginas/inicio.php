@@ -22,4 +22,3 @@ if (isset($_SESSION['usuario'])!="usuario") {
 
 </div>
 
- <?php include("../recursos/footer.php") ?>

@@ -59,4 +59,3 @@ if (isset($_SESSION['login_error']) && $_SESSION['login_error']) {
 }
 ?>
 
-<?php include("../recursos/footer.php")?>

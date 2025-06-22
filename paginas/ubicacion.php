@@ -71,4 +71,3 @@ if (isset($_POST['registrar_ubicacion'])) {
              
  </table>
   
-<?php  include("../recursos/footer.php") ?>
