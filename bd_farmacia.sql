@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 19-06-2025 a las 17:58:21
+-- Tiempo de generación: 23-06-2025 a las 01:17:55
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -42,7 +42,22 @@ CREATE TABLE `detalle_venta` (
 
 INSERT INTO `detalle_venta` (`id_detalle_venta`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`, `subtotal`) VALUES
 (1, 1, 4, 1, 12.00, 12.00),
-(2, 2, 4, 1, 12.00, 12.00);
+(2, 2, 4, 1, 12.00, 12.00),
+(3, 3, 4, 1, 12.00, 12.00),
+(4, 4, 4, 1, 12.00, 12.00),
+(5, 5, 4, 1, 12.00, 12.00),
+(6, 6, 4, 4, 12.00, 48.00),
+(7, 10, 4, 1, 12.00, 12.00),
+(8, 11, 4, 1, 12.00, 12.00),
+(9, 12, 4, 1, 12.00, 12.00),
+(10, 13, 4, 1, 12.00, 12.00),
+(11, 14, 4, 1, 12.00, 12.00),
+(12, 15, 4, 1, 12.00, 12.00),
+(13, 16, 4, 1, 12.00, 12.00),
+(14, 17, 4, 1, 12.00, 12.00),
+(15, 18, 4, 1, 12.00, 12.00),
+(16, 19, 4, 1, 12.00, 12.00),
+(17, 20, 4, 1, 12.00, 12.00);
 
 -- --------------------------------------------------------
 
@@ -59,16 +74,18 @@ CREATE TABLE `productos` (
   `stock_minimo` int(11) NOT NULL,
   `fecha_vencimiento` date NOT NULL,
   `requiere_refrigeracion` varchar(20) NOT NULL,
-  `precio_venta` float NOT NULL
+  `precio_venta` float NOT NULL,
+  `ubicacion` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fabrica`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `requiere_refrigeracion`, `precio_venta`) VALUES
-(4, 'Acetaminfen', 'Para el dolor de cabeza', 'Santa inez', 8, 0, '2025-06-07', 'no', 12),
-(6, 'Tegragrip', 'Malestar general', 'La republica', 16, 0, '2025-06-07', 'no', 0);
+INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fabrica`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `requiere_refrigeracion`, `precio_venta`, `ubicacion`) VALUES
+(4, 'Acetaminfen', 'Para el dolor de cabeza', 'Santa inez', 10, 0, '2025-06-07', 'no', 12, ''),
+(6, 'Tegragrip', 'Malestar general', 'La republica', 16, 0, '2025-06-07', 'no', 0, ''),
+(7, 'Ninazo', 'Congestión Nasal', 'Gen Ven', 6, 0, '2026-02-22', 'no', 6, 'Estante A1');
 
 -- --------------------------------------------------------
 
@@ -139,17 +156,31 @@ INSERT INTO `usuarios` (`id`, `correo`, `clave`) VALUES
 CREATE TABLE `ventas` (
   `id` int(11) NOT NULL,
   `fecha_venta` datetime DEFAULT current_timestamp(),
-  `total` decimal(10,2) NOT NULL,
-  `id_usuario` int(11) DEFAULT NULL
+  `total` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `ventas`
 --
 
-INSERT INTO `ventas` (`id`, `fecha_venta`, `total`, `id_usuario`) VALUES
-(1, '2025-06-08 19:39:47', 12.00, NULL),
-(2, '2025-06-15 21:50:44', 12.00, NULL);
+INSERT INTO `ventas` (`id`, `fecha_venta`, `total`) VALUES
+(1, '2025-06-08 19:39:47', 12.00),
+(2, '2025-06-15 21:50:44', 12.00),
+(3, '2025-06-22 17:31:29', 12.00),
+(4, '2025-06-22 17:50:30', 12.00),
+(5, '2025-06-22 17:50:32', 12.00),
+(6, '2025-06-22 17:55:07', 48.00),
+(10, '2025-06-22 18:03:13', 12.00),
+(11, '2025-06-22 18:13:47', 12.00),
+(12, '2025-06-22 18:16:34', 12.00),
+(13, '2025-06-22 18:19:21', 12.00),
+(14, '2025-06-22 18:22:25', 12.00),
+(15, '2025-06-22 18:24:25', 12.00),
+(16, '2025-06-22 18:26:36', 12.00),
+(17, '2025-06-22 18:36:33', 12.00),
+(18, '2025-06-22 18:37:10', 12.00),
+(19, '2025-06-22 18:58:07', 12.00),
+(20, '2025-06-22 18:59:29', 12.00);
 
 --
 -- Índices para tablas volcadas
@@ -202,13 +233,13 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT de la tabla `detalle_venta`
 --
 ALTER TABLE `detalle_venta`
-  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `ubicacion`
@@ -226,7 +257,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Restricciones para tablas volcadas
