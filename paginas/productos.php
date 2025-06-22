@@ -121,7 +121,17 @@ if (isset($_POST['registrar_producto'])) {
             <input class="form-control mb-2" type="number" step="0.01" name="precio_venta" id="precio_venta" min="0" required>
 
             <label class="fw-semibold" for="ubicacion_producto">Ubicación del Producto</label>
-            <input class="form-control mb-3" type="text" name="ubicacion_producto" id="ubicacion_producto" placeholder="Ej: Almacén Principal, Estante B2" required>
+              <select class="form-select mb-2" name="ubicacion_producto" id="requiere_refrigeracion" required>
+                <option value="">Seleccione...</option>
+                <option value="Estante A1">Estante A1</option>
+                <option value="Estante A2">Estante A2</option>
+                <option value="Estante B1">Estante B1</option>
+                <option value="Estante B2">Estante B2</option>
+                <option value="Estante C1">Estante C1</option>
+                <option value="Estante C2">Estante C2</option>
+
+               
+            </select>
 
             <button type="submit" class="btn btn-secondary bg-purple" name="registrar_producto">Registrar Producto</button>
         </form>

@@ -1,7 +1,11 @@
 <?php include("../recursos/header.php")?>
 
 <div class="container mt-4">
-    <h2><i class="fas fa-cash-register"></i> Registrar Venta</h2>
+    <header class="d-flex justify-content-between align-items-center p-3 ">
+    <h2 class="text-black">Registrar Venta</h2>
+    <a href="../paginas/inicio.php" class="btn btn-light "><i class="bi bi-arrow-left"></i> Regresar a Inicio</a>
+</header>
+    
     <hr>
     <form id="formVenta">
         <div class="mb-3">
@@ -38,6 +42,13 @@
         </div>
     </form>
 </div>
+
+<div id="invoiceContent" style="display: none; width: 800px; padding: 20px; box-sizing: border-box; background: white;">
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const buscarProductoInput = document.getElementById('buscarProducto');
@@ -47,6 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const formVenta = document.getElementById('formVenta');
 
     let carrito = []; // Almacenará los productos en el carrito
+
+    // Necesitas acceder a jsPDF y html2canvas desde el objeto window
+    // Esto se asegura de que jspdf.umd.min.js haya cargado el objeto jsPDF en window
+    const { jsPDF } = window.jspdf;
+
 
     // Función para actualizar el total de la venta
     function actualizarTotal() {
@@ -106,32 +122,24 @@ document.addEventListener('DOMContentLoaded', function() {
                             const item = document.createElement('a');
                             item.href = '#';
                             item.classList.add('list-group-item', 'list-group-item-action');
-                            // AQUI: Usas 'nombre_producto' para mostrarlo en las sugerencias, ¡esto está bien!
                             item.textContent = `${producto.nombre_producto} (Stock: ${producto.stock_actual})`;
                             item.addEventListener('click', function(e) {
                                 e.preventDefault();
-                                // Añadir producto al carrito
                                 const existe = carrito.find(p => p.id === producto.id);
                                 if (existe) {
-                                    // Validación básica de stock en frontend (la backend es la importante)
                                     if (existe.cantidad + 1 > producto.stock_actual) {
                                         alert(`No hay suficiente stock para añadir más de ${producto.nombre_producto}.`);
                                         return;
                                     }
                                     existe.cantidad++;
                                 } else {
-                                    // Validar si el stock es 0 antes de añadir
                                     if (producto.stock_actual <= 0) {
                                         alert(`El producto ${producto.nombre_producto} no tiene stock disponible.`);
                                         return;
                                     }
                                     carrito.push({
                                         id: producto.id,
-                                        // ****** LA CLAVE ESTÁ AQUÍ ******
-                                        // Asigna el valor de 'nombre_producto' que viene del servidor
-                                        // a la propiedad 'nombre' de tu objeto local en el carrito.
-                                        nombre: producto.nombre_producto,
-                                        // *******************************
+                                        nombre: producto.nombre_producto, // Asigna el valor de 'nombre_producto'
                                         precio_unitario: parseFloat(producto.precio_venta),
                                         cantidad: 1,
                                         stock_disponible: producto.stock_actual
@@ -161,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Validación de stock al cambiar la cantidad
             if (nuevaCantidad > carrito[index].stock_disponible) {
                 alert(`No hay suficiente stock para la cantidad solicitada de ${carrito[index].nombre}. Stock disponible: ${carrito[index].stock_disponible}`);
                 e.target.value = carrito[index].cantidad; // Revertir al valor anterior
@@ -181,8 +188,127 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // --- FUNCION PARA GENERAR EL PDF (MOVIDA Y CONSOLIDADA) ---
+    async function generateInvoicePdf(saleId, saleData, saleDetails) {
+        const invoiceContentDiv = document.getElementById('invoiceContent');
+        if (!invoiceContentDiv) {
+            console.error("El div #invoiceContent no se encontró.");
+            alert("Error interno al preparar la factura.");
+            return;
+        }
 
-    // Evento para enviar la venta
+        // 1. Construir el HTML de la factura dinámicamente
+        let invoiceHtml = `
+            <style>
+                body { font-family: sans-serif; margin: 0; padding: 0; font-size: 10px; color: #333; }
+                .container { width: 100%; max-width: 780px; margin: 0 auto; padding: 20px; border: 1px solid #eee; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .header h1 { margin: 0; font-size: 24px; color: #007bff; }
+                .header p { margin: 2px 0; font-size: 11px; }
+                .invoice-info { display: flex; justify-content: space-between; margin-bottom: 15px; }
+                .invoice-info div { flex: 1; }
+                .invoice-info strong { display: block; margin-bottom: 5px; color: #555; }
+                .details-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                .details-table th, .details-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                .details-table th { background-color: #f8f8f8; color: #666; }
+                .total-section { text-align: right; margin-top: 20px; }
+                .total-section h3 { margin: 0; font-size: 18px; color: #007bff; }
+                .footer { text-align: center; margin-top: 30px; font-size: 9px; color: #888; }
+                .text-right { text-align: right; }
+            </style>
+            <div class="container">
+                <div class="header">
+                    <h1>Factura de Venta</h1>
+                    <p>Tu Farmacia - [Nombre de tu Empresa]</p>
+                    <p>Dirección: Calle Falsa 123, Barinitas, Barinas, Venezuela</p>
+                    <p>Teléfono: (123) 456-7890 | Email: contacto@tufarmacia.com</p>
+                    <hr>
+                </div>
+
+                <div class="invoice-info">
+                    <div>
+                        <strong>FACTURA # ${saleData.id_venta}</strong>
+                        <span>Fecha: ${new Date(saleData.fecha_venta).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div class="text-right">
+                        <strong>Cliente: Venta al Público</strong>
+                        <span>(Cliente genérico)</span>
+                    </div>
+                </div>
+
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>P. Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        saleDetails.forEach(item => {
+            invoiceHtml += `
+                <tr>
+                    <td>${item.nombre_producto}</td>
+                    <td>${item.cantidad}</td>
+                    <td>${parseFloat(item.precio_unitario).toFixed(2)}</td>
+                    <td>${parseFloat(item.subtotal).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        invoiceHtml += `
+                    </tbody>
+                </table>
+
+                <div class="total-section">
+                    <h3>Total: ${parseFloat(saleData.total_venta).toFixed(2)}</h3>
+                </div>
+
+                <div class="footer">
+                    <p>¡Gracias por su compra!</p>
+                    <p>Este es un recibo generado automáticamente.</p>
+                </div>
+            </div>
+        `;
+
+        invoiceContentDiv.innerHTML = invoiceHtml; // Carga el HTML en el div oculto
+
+        // 2. Usar html2canvas para renderizar el div como una imagen
+        const canvas = await html2canvas(invoiceContentDiv, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png'); // Obtiene la imagen en base64
+
+        // 3. Crear el PDF con jsPDF
+        const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' para portrait (vertical)
+
+        const imgWidth = 190; // Ancho deseado en mm (aproximadamente, dejando márgenes)
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgHeight = canvas.height * imgWidth / canvas.width; // Mantiene la relación de aspecto
+
+        let heightLeft = imgHeight;
+        let position = 10; // Posición inicial desde el borde superior
+
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight); // Añade la imagen al PDF
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight + 10;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        // 4. Abrir el PDF en una nueva pestaña (preview)
+        window.open(pdf.output('bloburl'), '_blank');
+        // Para descargar directamente: pdf.save(`factura_venta_${saleId}.pdf`);
+
+        invoiceContentDiv.innerHTML = ''; // Limpiar el contenido del div después de generar el PDF
+    }
+
+
+    // --- UNICO EVENTO PARA ENVIAR LA VENTA ---
     formVenta.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -192,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (confirm('¿Está seguro de que desea registrar esta venta?')) {
-            fetch('registrar_venta.php', { // Asegúrate de que esta URL es correcta si el PHP está en otro archivo
+            fetch('registrar_venta.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -200,7 +326,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ productos: carrito })
             })
             .then(response => {
-                // Asegúrate de que la respuesta sea JSON o text para depurar
                 const contentType = response.headers.get("content-type");
                 if (contentType && contentType.includes("application/json")) {
                     return response.json();
@@ -211,23 +336,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
             })
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    carrito = []; // Limpiar carrito
-                    renderizarCarrito(); // Limpiar tabla
-                    // Opcional: Redirigir a una página de confirmación o de listado de ventas
-                } else {
-                    alert('Error al registrar venta: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error al registrar la venta (catch):', error);
-                alert('Ocurrió un error al registrar la venta. Consulta la consola para más detalles.');
-            });
+           // ... (dentro de la parte .then(data => { ... }) de la primera solicitud a registrar_venta.php)
+
+.then(data => {
+    if (data.success) {
+        alert(data.message); // Puedes mantener este alert si quieres
+        carrito = [];
+        renderizarCarrito();
+
+        if (data.id_venta) {
+            // Este es el bloque que modifica
+            // Antes: fetch a obtener_detalles_venta.php y luego generateInvoicePdf
+            // Ahora: Redirección
+            window.location.href = `vista_previa_factura.php?id=${data.id_venta}`;
+            // Puedes eliminar el alert de éxito si la redirección es inmediata
+            // alert('Venta registrada. Redirigiendo a vista previa de factura.');
+
+        } else {
+            alert('Venta registrada, pero no se recibió ID de venta para generar factura.');
+        }
+    } else {
+        alert('Error al registrar venta: ' + data.message);
+        // Puedes agregar más manejo de errores o logging aquí
+    }
+})
+.catch(error => {
+    console.error('Error en el proceso de venta/facturación:', error);
+    alert('Error en el proceso de venta/facturación: ' + error.message);
+});
         }
     });
 
-    
-});
+}); // Fin de DOMContentLoaded
 </script>

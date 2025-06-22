@@ -181,11 +181,9 @@ if ($result_total_stock && mysqli_num_rows($result_total_stock) > 0) {
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>Detalle del Stock en Ubicaciones</h4>
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#entradaStockModal">
-                    <i class="bi bi-box-arrow-in-right"></i> Registrar Entrada de Stock
-                </button>
-            </div>
+                <h4>Detalles de invetario</h4>
+               
+         </div>
 
             <div class="table-responsive">
                 <table class="table table-striped table-bordered table-hover" id="tablaInventario">
@@ -193,10 +191,7 @@ if ($result_total_stock && mysqli_num_rows($result_total_stock) > 0) {
                         <tr>
                             <th scope="col">ID Producto</th> <th scope="col">Producto</th>
                             <th scope="col">Ubicación</th>
-                            <th scope="col">Cantidad en Ubicación</th>
-                            <th scope="col">Stock Total Producto</th>
-                            <th scope="col">Stock Mínimo</th>
-                            <th scope="col">Estado</th>
+                            <th scope="col">Cantidad</th>
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -248,15 +243,7 @@ if ($result_total_stock && mysqli_num_rows($result_total_stock) > 0) {
                                         <td><?php echo htmlspecialchars($row['producto_id']); ?></td>
                                         <td><?php echo htmlspecialchars($row['nombre_producto']); ?></td>
                                         <td><?php echo htmlspecialchars($row['nombre_ubicacion']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['cantidad_en_ubicacion']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['total_stock_producto']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['stock_minimo']); ?></td>
-                                        <td class="<?php echo $clase_estado; ?>">
-                                            <?php echo $estado_stock; ?>
-                                            <div class="progress mt-1" style="height: 10px;">
-                                                <div class="progress-bar <?php echo $barra_clase; ?>" role="progressbar" style="width: <?php echo min(100, $porcentaje_stock); ?>%;" aria-valuenow="<?php echo $porcentaje_stock; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </td>
+                                        <td><?php echo htmlspecialchars($row['total_stock_producto']); ?></td>             
                                         <td>
                                             <button class="btn btn-sm btn-info text-white" title="Mover Stock" onclick="abrirModalMoverStock(<?php echo $row['producto_id']; ?>, <?php echo $row['cantidad_en_ubicacion']; ?>)"><i class="bi bi-arrows-move"></i></button>
                                             <button class="btn btn-sm btn-danger" title="Registrar Salida" onclick="abrirModalSalidaStock(<?php echo $row['producto_id']; ?>, <?php echo $row['cantidad_en_ubicacion']; ?>)"><i class="bi bi-box-arrow-left"></i></button>
@@ -277,151 +264,6 @@ if ($result_total_stock && mysqli_num_rows($result_total_stock) > 0) {
         </div>
     </div>
 </main>
-
-<div class="modal fade" id="entradaStockModal" tabindex="-1" aria-labelledby="entradaStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="entradaStockModalLabel"><i class="bi bi-box-arrow-in-right"></i> Registrar Nueva Entrada de Stock</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="inventario_consulta.php" method="POST">
-                    <div class="mb-3">
-                        <label for="modal_id_producto" class="form-label">Producto:</label>
-                        <select class="form-select" id="modal_id_producto" name="id_producto" required>
-                            <option value="">-- Seleccione un Producto --</option>
-                            <?php foreach ($productos as $producto) : ?>
-                                <option value="<?php echo htmlspecialchars($producto['id']); ?>">
-                                    <?php echo htmlspecialchars($producto['nombre_producto']); ?> (Stock Total: <?php echo htmlspecialchars($producto['stock_actual']); ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modal_id_ubicacion" class="form-label">Ubicación:</label>
-                        <select class="form-select" id="modal_id_ubicacion" name="id_ubicacion" required>
-                            <option value="">-- Seleccione una Ubicación --</option>
-                            <?php foreach ($ubicaciones as $ubicacion) : ?>
-                                <option value="<?php echo htmlspecialchars($ubicacion['id_ubicacion']); ?>">
-                                    <?php echo htmlspecialchars($ubicacion['descripcion_ubicacion']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modal_cantidad" class="form-label">Cantidad a Ingresar:</label>
-                        <input type="number" class="form-control" id="modal_cantidad" name="cantidad" min="1" required>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-success" name="registrar_entrada"><i class="bi bi-plus-circle"></i> Registrar Entrada</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="salidaStockModal" tabindex="-1" aria-labelledby="salidaStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="salidaStockModalLabel"><i class="bi bi-box-arrow-left"></i> Registrar Salida de Stock</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="inventario_consulta.php" method="POST">
-                    <input type="hidden" name="action" value="registrar_salida">
-                    <input type="hidden" name="salida_producto_id" id="salida_producto_id">
-
-                    <div class="mb-3">
-                        <label for="salida_nombre_producto" class="form-label">Producto:</label>
-                        <input type="text" class="form-control" id="salida_nombre_producto" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="salida_id_ubicacion" class="form-label">Ubicación de Salida:</label>
-                        <select class="form-select" id="salida_id_ubicacion" name="salida_id_ubicacion" required>
-                            <option value="">-- Seleccione una Ubicación --</option>
-                            <?php foreach ($ubicaciones as $ubicacion) : ?>
-                                <option value="<?php echo htmlspecialchars($ubicacion['id_ubicacion']); ?>">
-                                    <?php echo htmlspecialchars($ubicacion['descripcion_ubicacion']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="salida_cantidad" class="form-label">Cantidad a Retirar:</label>
-                        <input type="number" class="form-control" id="salida_cantidad" name="salida_cantidad" min="1" required>
-                        <small class="form-text text-muted" id="salida_stock_disponible"></small>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-danger" name="registrar_salida_btn"><i class="bi bi-dash-circle"></i> Registrar Salida</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="moverStockModal" tabindex="-1" aria-labelledby="moverStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="moverStockModalLabel"><i class="bi bi-arrows-move"></i> Mover Stock entre Ubicaciones</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="inventario_consulta.php" method="POST">
-                    <input type="hidden" name="action" value="mover_stock">
-                    <input type="hidden" name="mover_producto_id" id="mover_producto_id">
-
-                    <div class="mb-3">
-                        <label for="mover_nombre_producto" class="form-label">Producto:</label>
-                        <input type="text" class="form-control" id="mover_nombre_producto" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="mover_ubicacion_origen" class="form-label">Desde Ubicación:</label>
-                        <select class="form-select" id="mover_ubicacion_origen" name="mover_ubicacion_origen" required>
-                            <option value="">-- Seleccione Ubicación Origen --</option>
-                            </select>
-                        <small class="form-text text-muted" id="mover_stock_origen_disponible"></small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="mover_ubicacion_destino" class="form-label">Hacia Ubicación:</label>
-                        <select class="form-select" id="mover_ubicacion_destino" name="mover_ubicacion_destino" required>
-                            <option value="">-- Seleccione Ubicación Destino --</option>
-                            <?php foreach ($ubicaciones as $ubicacion) : ?>
-                                <option value="<?php echo htmlspecialchars($ubicacion['id_ubicacion']); ?>">
-                                    <?php echo htmlspecialchars($ubicacion['descripcion_ubicacion']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="mover_cantidad" class="form-label">Cantidad a Mover:</label>
-                        <input type="number" class="form-control" id="mover_cantidad" name="mover_cantidad" min="1" required>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-info text-white" name="mover_stock_btn"><i class="bi bi-truck"></i> Mover Stock</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <?php
 // Cierra la conexión a la base de datos al final del script.
@@ -499,51 +341,5 @@ mysqli_close($conn);
         });
     }
 
-    // Función para abrir el modal de Mover Stock
-    function abrirModalMoverStock(productoId, cantidadActual) {
-        $('#mover_producto_id').val(productoId);
 
-        $.ajax({
-            url: 'get_product_data.php', // Reutilizamos el mismo archivo PHP
-            type: 'GET',
-            data: { product_id: productoId },
-            dataType: 'json',
-            success: function(data) {
-                $('#mover_nombre_producto').val(data.nombre_producto);
-
-                // Llenar el selector de ubicación de origen
-                let ubicacionesOrigenOptions = '<option value="">-- Seleccione Ubicación Origen --</option>';
-                data.ubicaciones_con_stock.forEach(function(ubic) {
-                    ubicacionesOrigenOptions += `<option value="${ubic.ID_Ubicacion}">${ubic.descripcion_ubicacion} (Cantidad: ${ubic.cantidad})</option>`;
-                });
-                $('#mover_ubicacion_origen').html(ubicacionesOrigenOptions);
-
-                // Actualizar la cantidad máxima para el input de mover al seleccionar una ubicación de origen
-                $('#mover_ubicacion_origen').on('change', function() {
-                    const selectedUbicacionId = $(this).val();
-                    const selectedUbicacion = data.ubicaciones_con_stock.find(ubic => ubic.ID_Ubicacion == selectedUbicacionId);
-                    if (selectedUbicacion) {
-                        $('#mover_cantidad').attr('max', selectedUbicacion.cantidad);
-                        $('#mover_stock_origen_disponible').text('Stock disponible en origen: ' + selectedUbicacion.cantidad);
-                    } else {
-                        $('#mover_cantidad').removeAttr('max');
-                        $('#mover_stock_origen_disponible').text('');
-                    }
-                    // Deshabilitar la ubicación de origen en el selector de destino
-                    $('#mover_ubicacion_destino option').prop('disabled', false);
-                    if (selectedUbicacionId) {
-                        $('#mover_ubicacion_destino option[value="' + selectedUbicacionId + '"]').prop('disabled', true);
-                    }
-                });
-
-                // Mostrar el modal
-                var moverStockModal = new bootstrap.Modal(document.getElementById('moverStockModal'));
-                moverStockModal.show();
-            },
-            error: function(xhr, status, error) {
-                console.error("Error al obtener datos del producto para mover:", status, error);
-                alert("No se pudo cargar la información para mover stock. Intente de nuevo.");
-            }
-        });
-    }
 </script>
