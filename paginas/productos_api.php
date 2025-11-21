@@ -4,7 +4,10 @@
 // Incluimos tu archivo de conexión MySQLi
 include("../conexion/conex.php"); // Asegúrate de que esta ruta sea correcta
 
+// Buffer para evitar output prematuro
+ob_start();
 header('Content-Type: application/json');
+ob_clean();
 
 $query_param = isset($_GET['query']) ? trim($_GET['query']) : '';
 
@@ -17,7 +20,6 @@ $productos = [];
 
 try {
     // Primero, intenta buscar por ID del producto
-    // Esto es útil si el usuario introduce un número, asumiendo que es el ID del producto
     if (is_numeric($query_param)) {
         $sql_id = "SELECT id, nombre_producto, precio_venta, stock_actual FROM productos WHERE id = ? LIMIT 1";
         $stmt_id = mysqli_prepare($conn, $sql_id);
@@ -26,7 +28,7 @@ try {
             mysqli_stmt_execute($stmt_id);
             $result_id = mysqli_stmt_get_result($stmt_id);
             if ($row = mysqli_fetch_assoc($result_id)) {
-                $productos[] = $row; // Añade el producto encontrado por ID
+                $productos[] = $row;
             }
             mysqli_stmt_close($stmt_id);
         } else {
@@ -34,13 +36,9 @@ try {
         }
     }
 
-    // Si no se encontró por ID, o si la consulta original no era un número (es texto),
-    // busca por el nombre del producto
-    // Ojo: Si ya encontraste por ID, y la búsqueda por texto podría encontrar el mismo ID,
-    // se maneja para evitar duplicados en el array $productos.
-    if (empty($productos) || !is_numeric($query_param)) { // Añadimos esta condición para buscar por nombre si no se encontró por ID
+    // Si no se encontró por ID, busca por nombre
+    if (empty($productos) || !is_numeric($query_param)) {
         $search_term = "%" . $query_param . "%";
-        // Buscamos por nombre_producto (ajusta si tu columna se llama 'nombre' o similar)
         $sql_text = "SELECT id, nombre_producto, precio_venta, stock_actual FROM productos WHERE nombre_producto LIKE ? LIMIT 10";
         $stmt_text = mysqli_prepare($conn, $sql_text);
         if ($stmt_text) {
@@ -49,7 +47,7 @@ try {
             $results_text = mysqli_stmt_get_result($stmt_text);
             
             while ($row = mysqli_fetch_assoc($results_text)) {
-                // Evita añadir duplicados si un producto ya se encontró por su ID
+                // Evita añadir duplicados
                 $found = false;
                 foreach ($productos as $p) {
                     if ($p['id'] == $row['id']) {
@@ -76,5 +74,6 @@ try {
     if (isset($conn) && $conn) {
         mysqli_close($conn);
     }
+    ob_end_flush();
 }
-?>
+// NO CIERRES CON ?>

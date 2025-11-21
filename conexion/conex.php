@@ -16,3 +16,5 @@ if ($conn->connect_error) {
 }
 
 $conn->set_charset("utf8mb4");
+
+// No debe haber nada después de esta línea, ni siquiera el cierre 

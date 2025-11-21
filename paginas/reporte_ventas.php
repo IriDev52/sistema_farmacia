@@ -1,6 +1,7 @@
 <?php
 include("../recursos/header.php");
 include('../conexion/conex.php');
+include("tasa_bcv.php");
 session_start();
 
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario'] === null) {
@@ -8,34 +9,50 @@ if (!isset($_SESSION['usuario']) || $_SESSION['usuario'] === null) {
     exit();
 }
 
-$api_url = 'https://pydolarvenezuela-api.vercel.app/api/v1/dollar/bcv';
-$cache_file = '../cache/tasa_bcv_cache.txt';
-$cache_duration = 4 * 3600;
-$fallback_rate = 110;
+// --- 🎯 LÓGICA DE CACHÉ MEJORADA Y ENCAPSULADA ---
+$cache_file = '../cache/tasa_dolarvzla_cache.txt'; // Nombre de caché más específico
+$cache_duration = 4 * 3600; // 4 horas
+$fallback_rate = 36.5; // Tasa de respaldo (usando el valor que definiste en la función)
 
 $tasa_cambio_dolar_a_bs = $fallback_rate;
+
 if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_duration) {
+    // 1. Cargar desde la caché si es válida
     $tasa_cacheada = file_get_contents($cache_file);
     if ($tasa_cacheada !== false && is_numeric($tasa_cacheada)) {
         $tasa_cambio_dolar_a_bs = (float)$tasa_cacheada;
+        // Opcional: registrar que se usó la caché
+        // error_log("Tasa cargada desde la caché.");
     }
 } else {
+    // 2. Si no hay caché o está expirada, obtener la tasa real
     if (!is_dir('../cache')) {
         mkdir('../cache', 0755, true);
     }
-    $json_data = @file_get_contents($api_url);
+    
+    // Llamar a la función robusta de tasa_bcv.php
+    // Usamos el fallback_rate como argumento por si la función no lo tiene por defecto
+    $tasa_obtenida = obtenerTasaBCV_API_Anidada(); 
 
-    if ($json_data !== false) {
-        $data = json_decode($json_data, true);
-        
-        if (isset($data['price']) && is_numeric($data['price'])) {
-            $tasa_obtenida = (float)$data['price'];
-            $tasa_cambio_dolar_a_bs = $tasa_obtenida;
-            file_put_contents($cache_file, $tasa_obtenida);
+    if (is_float($tasa_obtenida) && $tasa_obtenida > 0) {
+        // Tasa válida, actualizar caché y variable
+        $tasa_cambio_dolar_a_bs = $tasa_obtenida;
+        file_put_contents($cache_file, $tasa_obtenida);
+        // Opcional: registrar que la tasa fue actualizada
+        // error_log("Tasa actualizada desde API y guardada en caché.");
+    } else {
+        // La función falló, cargar tasa de respaldo
+        $tasa_cambio_dolar_a_bs = $fallback_rate;
+        // Opcional: cargar la última tasa válida de la caché si existe (mejor fallback)
+        if (file_exists($cache_file)) {
+             $tasa_cambio_dolar_a_bs = (float)file_get_contents($cache_file);
         }
+        // error_log("Fallo al obtener tasa de API. Usando tasa de respaldo/última caché.");
     }
 }
+// --- FIN LÓGICA DE CACHÉ ---
 
+// Carga de datos de ventas (no necesita cambios)
 $sql = "SELECT id, fecha_venta, total FROM ventas ORDER BY fecha_venta DESC";
 $resultado = $conn->query($sql);
 
