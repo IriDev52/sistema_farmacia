@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 23-06-2025 a las 01:17:55
+-- Tiempo de generación: 12-07-2025 a las 18:31:53
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.0.30
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -41,23 +41,46 @@ CREATE TABLE `detalle_venta` (
 --
 
 INSERT INTO `detalle_venta` (`id_detalle_venta`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`, `subtotal`) VALUES
-(1, 1, 4, 1, 12.00, 12.00),
-(2, 2, 4, 1, 12.00, 12.00),
-(3, 3, 4, 1, 12.00, 12.00),
-(4, 4, 4, 1, 12.00, 12.00),
-(5, 5, 4, 1, 12.00, 12.00),
-(6, 6, 4, 4, 12.00, 48.00),
-(7, 10, 4, 1, 12.00, 12.00),
-(8, 11, 4, 1, 12.00, 12.00),
-(9, 12, 4, 1, 12.00, 12.00),
-(10, 13, 4, 1, 12.00, 12.00),
-(11, 14, 4, 1, 12.00, 12.00),
-(12, 15, 4, 1, 12.00, 12.00),
-(13, 16, 4, 1, 12.00, 12.00),
-(14, 17, 4, 1, 12.00, 12.00),
-(15, 18, 4, 1, 12.00, 12.00),
-(16, 19, 4, 1, 12.00, 12.00),
-(17, 20, 4, 1, 12.00, 12.00);
+(1, 1, 5, 1, 0.40, 0.40),
+(2, 2, 2, 1, 6.02, 6.02),
+(3, 3, 5, 1, 0.40, 0.40),
+(4, 4, 7, 1, 5.20, 5.20),
+(5, 5, 8, 1, 500.00, 500.00);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `movimientos_inventario`
+--
+
+CREATE TABLE `movimientos_inventario` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `tipo_movimiento` varchar(50) NOT NULL,
+  `cantidad` decimal(10,2) NOT NULL,
+  `stock_antes` decimal(10,2) NOT NULL,
+  `stock_despues` decimal(10,2) NOT NULL,
+  `ubicacion` varchar(255) NOT NULL,
+  `fecha_movimiento` timestamp NOT NULL DEFAULT current_timestamp(),
+  `observaciones` text DEFAULT NULL,
+  `usuario_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `movimientos_inventario`
+--
+
+INSERT INTO `movimientos_inventario` (`id`, `id_producto`, `tipo_movimiento`, `cantidad`, `stock_antes`, `stock_despues`, `ubicacion`, `fecha_movimiento`, `observaciones`, `usuario_id`) VALUES
+(1, 1, 'Entrada', 21.00, 100.00, 121.00, 'Estante B1', '2025-06-28 22:09:11', 'Entrada de stock registrada. Y reubicado de Estante C2 a Estante B1.', NULL),
+(2, 2, 'Entrada', 12.00, 50.00, 62.00, 'Estante C2', '2025-06-28 22:27:15', 'Entrada de stock registrada. Y reubicado de Estante A2 a Estante C2.', NULL),
+(3, 2, 'Entrada', 20.00, 62.00, 82.00, 'Estante A2', '2025-06-28 23:43:04', 'Entrada de stock. Se suman 20 unidades. Ubicación anterior: Estante C2. Ubicación actual: Estante A2.', 1),
+(4, 2, 'Entrada', 70.00, 82.00, 152.00, 'Estante A1', '2025-06-29 00:25:24', 'Entrada de stock. Se suman 70 unidades. Ubicación anterior: Estante A2. Ubicación actual: Estante A1.', 1),
+(5, 2, 'Entrada', 1.00, 152.00, 153.00, 'Estante C2', '2025-06-29 00:48:19', 'Entrada de stock. Se suman 1 unidades. Ubicación anterior: Estante A1. Ubicación actual: Estante C2.', 1),
+(6, 2, 'Entrada', 12.00, 153.00, 165.00, 'Estante C1', '2025-06-29 00:48:37', 'Entrada de stock. Se suman 12 unidades. Ubicación anterior: Estante C2. Ubicación actual: Estante C1.', 1),
+(7, 2, 'Entrada', 2.00, 165.00, 167.00, 'Estante C2', '2025-06-29 01:52:36', 'Entrada de stock. Se suman 2 unidades. Ubicación anterior: Estante C1. Ubicación actual: Estante C2.', 1),
+(8, 3, 'Entrada', 1.00, 50.00, 51.00, 'Estante C1', '2025-06-29 02:04:57', 'Entrada de stock. Se suman 1 unidades. Ubicación anterior: Estante A1. Ubicación actual: Estante C1.', 1),
+(9, 4, 'Entrada', 50.00, 20.00, 70.00, 'Estante A1', '2025-07-09 13:48:37', 'Entrada de stock. Se suman 50 unidades. Ubicación anterior: Estante A1. Ubicación actual: Estante A1.', 1),
+(10, 5, 'Entrada', 10.00, 20.00, 30.00, 'Estante C2', '2025-07-09 13:54:36', 'Entrada de stock. Se suman 10 unidades. Ubicación anterior: Estante A2. Ubicación actual: Estante C2.', 1);
 
 -- --------------------------------------------------------
 
@@ -73,19 +96,25 @@ CREATE TABLE `productos` (
   `stock_actual` int(11) NOT NULL,
   `stock_minimo` int(11) NOT NULL,
   `fecha_vencimiento` date NOT NULL,
+  `numero_lote` varchar(50) DEFAULT NULL,
   `requiere_refrigeracion` varchar(20) NOT NULL,
   `precio_venta` float NOT NULL,
-  `ubicacion` varchar(50) NOT NULL
+  `ubicacion` varchar(50) NOT NULL,
+  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fabrica`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `requiere_refrigeracion`, `precio_venta`, `ubicacion`) VALUES
-(4, 'Acetaminfen', 'Para el dolor de cabeza', 'Santa inez', 10, 0, '2025-06-07', 'no', 12, ''),
-(6, 'Tegragrip', 'Malestar general', 'La republica', 16, 0, '2025-06-07', 'no', 0, ''),
-(7, 'Ninazo', 'Congestión Nasal', 'Gen Ven', 6, 0, '2026-02-22', 'no', 6, 'Estante A1');
+INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fabrica`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `numero_lote`, `requiere_refrigeracion`, `precio_venta`, `ubicacion`, `estado`) VALUES
+(2, 'alcohol antiséptico 129ml', 'elimina las bacterias', 'Facetico ', 162, 30, '2025-07-12', NULL, 'no', 6, '0', 'activo'),
+(3, 'ampicilina 500mg', 'antibiotico', 'GENVEN', 51, 25, '2025-06-07', NULL, 'si', 0.28, 'Estante C1', 'inactivo'),
+(4, 'Amoxicilina 500mg', 'Antibiótico ', 'GENVEN', 70, 9, '2025-08-09', NULL, 'no', 5.2, 'Estante A1', 'activo'),
+(5, 'acetaminofén 500mg', 'Analgésico', 'PHARMA', 11, 10, '2027-07-09', NULL, 'no', 0.4, 'Estante C2', 'activo'),
+(6, 'Atamel 400mg', 'Analgesico', 'GENVEN', 50, 24, '2026-12-10', NULL, 'no', 5.2, 'Estante A1', 'activo'),
+(7, 'alcohol antiséptico 129ml', 'antibacterial', 'PHARMA', 0, 5, '2025-07-10', NULL, 'no', 5.2, '0', 'inactivo'),
+(8, 'Tachipirin', 'jarabe para la tos ', 'GENVEN', 19, 5, '2025-07-15', NULL, 'no', 500, 'Estante B2', 'activo');
 
 -- --------------------------------------------------------
 
@@ -145,7 +174,11 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `correo`, `clave`) VALUES
-(1, 'Irimar23@gmail.com', 'Irimar123#');
+(1, 'Irimar23@gmail.com', 'Irimar123#'),
+(2, 'victor234@gmail.com', '12345678v'),
+(3, 'gabrielvielma91@gmail.com', '12345g'),
+(4, 'prueba1@gmail.com', '123456789p'),
+(6, 'lindolfo.unellez@gmail.com', '123456789');
 
 -- --------------------------------------------------------
 
@@ -164,23 +197,11 @@ CREATE TABLE `ventas` (
 --
 
 INSERT INTO `ventas` (`id`, `fecha_venta`, `total`) VALUES
-(1, '2025-06-08 19:39:47', 12.00),
-(2, '2025-06-15 21:50:44', 12.00),
-(3, '2025-06-22 17:31:29', 12.00),
-(4, '2025-06-22 17:50:30', 12.00),
-(5, '2025-06-22 17:50:32', 12.00),
-(6, '2025-06-22 17:55:07', 48.00),
-(10, '2025-06-22 18:03:13', 12.00),
-(11, '2025-06-22 18:13:47', 12.00),
-(12, '2025-06-22 18:16:34', 12.00),
-(13, '2025-06-22 18:19:21', 12.00),
-(14, '2025-06-22 18:22:25', 12.00),
-(15, '2025-06-22 18:24:25', 12.00),
-(16, '2025-06-22 18:26:36', 12.00),
-(17, '2025-06-22 18:36:33', 12.00),
-(18, '2025-06-22 18:37:10', 12.00),
-(19, '2025-06-22 18:58:07', 12.00),
-(20, '2025-06-22 18:59:29', 12.00);
+(1, '2025-07-09 10:45:22', 0.40),
+(2, '2025-07-09 10:50:43', 6.02),
+(3, '2025-07-11 11:13:26', 0.40),
+(4, '2025-07-11 19:34:25', 5.20),
+(5, '2025-07-12 09:52:47', 500.00);
 
 --
 -- Índices para tablas volcadas
@@ -193,6 +214,12 @@ ALTER TABLE `detalle_venta`
   ADD PRIMARY KEY (`id_detalle_venta`),
   ADD KEY `id_venta` (`id_venta`),
   ADD KEY `id_producto` (`id_producto`);
+
+--
+-- Indices de la tabla `movimientos_inventario`
+--
+ALTER TABLE `movimientos_inventario`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `productos`
@@ -233,13 +260,19 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT de la tabla `detalle_venta`
 --
 ALTER TABLE `detalle_venta`
-  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `movimientos_inventario`
+--
+ALTER TABLE `movimientos_inventario`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `ubicacion`
@@ -251,13 +284,13 @@ ALTER TABLE `ubicacion`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Restricciones para tablas volcadas

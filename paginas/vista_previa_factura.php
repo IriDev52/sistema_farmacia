@@ -56,15 +56,15 @@ if ($stmt_detalles = $conn->prepare($sql_detalles)) {
 
 $conn->close();
 
-$empresa_nombre = "Farmacia Vital, C.A.";
-$empresa_direccion = "Av. Principal, Edificio Salud, Local 1, Caracas, Venezuela";
+$empresa_nombre = "Farmacia Barrancas, C.A.";
+$empresa_direccion = "Av. Principal, Barinas, Local 1,Barrancas , Venezuela";
 $empresa_telefono = "+58 (212) 555-4321";
-$empresa_email = "contacto@farmaciavital.com";
+$empresa_email = "contacto@farmaciabarrancas.com";
 $cliente_nombre = "Cliente General";
 $cliente_tipo_venta = "Venta a Consumidor Final";
 $cliente_direccion = "Dirección del Cliente, Ciudad, País";
-$cliente_rif_ci = "V-98765432";
-$cliente_telefono = "+58 (414) 123-4567";
+$cliente_rif_ci = "V-";
+$cliente_telefono = "+58";
 
 $iva_rate = 0.16;
 $total_con_iva = $venta_data['total'];
@@ -86,11 +86,11 @@ $iva_monto = $total_con_iva - $base_imponible;
     
     <style>
         :root {
-            --primary-color: #00796b; /* Verde oscuro, asociado a la salud */
+            --primary-color: #00796b; 
             --secondary-color: #607d8b;
             --text-dark: #263238;
             --text-muted: #78909c;
-            --bg-light: #e0f2f1; /* Verde claro */
+            --bg-light: #e0f2f1; 
             --border-color: #b2dfdb;
             --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.05);
         }

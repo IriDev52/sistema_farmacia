@@ -3,7 +3,7 @@ include("../recursos/header.php");
 include("../conexion/conex.php");
 session_start();
 
-// --- Lógica PHP para cargar datos iniciales ---
+
 $productos = [];
 $query_productos = "SELECT id, nombre_producto, stock_actual, ubicacion FROM productos WHERE estado = 'Activo' ORDER BY nombre_producto";
 $result_productos = mysqli_query($conn, $query_productos);
@@ -26,7 +26,7 @@ $ubicaciones_disponibles = [
     'Estante C2'
 ];
 
-// Lógica para las tarjetas de estadísticas
+
 $total_productos = count($productos);
 
 $total_stock_actual = 0;
@@ -48,7 +48,7 @@ $query_proximos = "SELECT COUNT(*) AS total_proximos FROM productos WHERE fecha_
 $result_proximos = mysqli_query($conn, $query_proximos);
 $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['total_proximos'] : 0;
 
-// --- HTML y Diseño ---
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -121,12 +121,12 @@ $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['tot
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        /* Contenedor principal de la página */
+        
         .main-container {
             padding-top: 2rem;
         }
 
-        /* Tarjetas de estadísticas */
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -166,7 +166,7 @@ $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['tot
             line-height: 1;
         }
 
-        /* Contenedor de la tabla */
+       
         .table-container {
             background-color: #fff;
             border-radius: 8px;
@@ -202,7 +202,7 @@ $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['tot
             box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
         }
         
-        /* Estilos de DataTables */
+     
         .dataTables_wrapper .dataTables_filter input {
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -239,7 +239,7 @@ $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['tot
         .expired-row { background-color: rgba(220, 53, 69, 0.1) !important; color: #dc3545 !important; font-weight: 600; }
         .warning-row { background-color: rgba(255, 193, 7, 0.1) !important; color: #d39e00 !important; font-weight: 600; }
 
-        /* Modal */
+     
         .modal-content {
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -456,12 +456,12 @@ $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['tot
             }
         });
         
-        // Lógica para el botón "Ver Detalles" (el ojo)
+        
         $('#tablaInventario tbody').on('click', '.btn-info', function () {
-            // Obtener la fila de la tabla a la que pertenece el botón
+            
             var data = dataTable.row($(this).parents('tr')).data();
             
-            // Llenar el modal con los datos de la fila
+            
             $('#detalle_id').text(data.id);
             $('#detalle_nombre').text(data.nombre_producto);
             $('#detalle_laboratorio').text(data.laboratorio_fabrica);
@@ -470,7 +470,7 @@ $total_proximos = ($result_proximos) ? mysqli_fetch_assoc($result_proximos)['tot
             $('#detalle_vencimiento').text(data.fecha_vencimiento);
             $('#detalle_ubicacion').text(data.ubicacion);
 
-            // Mostrar el modal
+
             var verDetallesModal = new bootstrap.Modal(document.getElementById('verDetallesModal'));
             verDetallesModal.show();
         });

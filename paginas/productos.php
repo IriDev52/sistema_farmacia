@@ -320,7 +320,7 @@ if ($resultado && mysqli_num_rows($resultado) > 0) {
                             <th>Laboratorio</th>
                             <th>Stock</th>
                             <th>Fecha Venc.</th>
-                            <th>Precio (Bs.)</th>
+                            <th>Precio ($.)</th>
                             <th>Ubicación</th>
                             <th>Estado</th>
                             <th class="text-center">Acciones</th>
@@ -389,7 +389,7 @@ if ($resultado && mysqli_num_rows($resultado) > 0) {
                             <input type="date" class="form-control" id="fecha_vencimiento" name="fecha_vencimiento" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="precio_venta" class="form-label fw-bold">Precio (Bs.)</label>
+                            <label for="precio_venta" class="form-label fw-bold">Precio ($.)</label>
                             <input type="number" step="0.01" class="form-control" id="precio_venta" name="precio_venta" min="0.01" required>
                         </div>
                         <div class="col-md-6">

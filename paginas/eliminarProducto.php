@@ -1,13 +1,13 @@
 <?php 
-    include("../conexion/conex.php"); // Asegúrate de que esta ruta sea correcta
+    include("../conexion/conex.php"); 
 
     if (isset($_GET['id'])) {
         $id = $_GET['id'];
 
-        mysqli_begin_transaction($conn); // Iniciar transacción
+        mysqli_begin_transaction($conn);
 
         try {
-            // 1. Eliminar los registros relacionados en producto_ubicacion
+           
             $delete_pu_query = "DELETE FROM producto_ubicacion WHERE ID_Producto = ?";
             $stmt_pu = mysqli_prepare($conn, $delete_pu_query);
             
@@ -22,7 +22,7 @@
             }
             mysqli_stmt_close($stmt_pu);
 
-            // 2. Ahora, eliminar el producto de la tabla prductos
+           
             $delete_p_query = "DELETE FROM productos WHERE id = ?";
             $stmt_p = mysqli_prepare($conn, $delete_p_query);
             
@@ -37,7 +37,7 @@
             }
             mysqli_stmt_close($stmt_p);
 
-            mysqli_commit($conn); // Confirmar ambas operaciones
+            mysqli_commit($conn); 
 
             echo "<script>
                 alert('Producto y sus asignaciones de ubicación eliminados correctamente.');
@@ -46,7 +46,7 @@
             exit();
 
         } catch (Exception $e) {
-            mysqli_rollback($conn); // Revertir si algo falla
+            mysqli_rollback($conn); 
             echo "<script>
                 alert('Error al eliminar el producto: " . addslashes($e->getMessage()) . "');
                 window.location.href = 'productos.php'; // Volver a la lista de productos

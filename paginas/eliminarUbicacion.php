@@ -1,14 +1,14 @@
 <?php 
-    include("../conexion/conex.php"); // Asegúrate de que esta ruta sea correcta
-    include("../recursos/header.php"); // Agregué el header para que se muestren los alerts correctamente
+    include("../conexion/conex.php"); 
+    include("../recursos/header.php");
 
     if (isset($_GET['id'])) {
-        $id_ubicacion_eliminar = $_GET['id']; // Renombré la variable para mayor claridad
+        $id_ubicacion_eliminar = $_GET['id']; 
 
-        mysqli_begin_transaction($conn); // Iniciar transacción
+        mysqli_begin_transaction($conn);
 
         try {
-            // 1. Eliminar los registros relacionados en producto_ubicacion que hacen referencia a esta ubicación
+           
             $delete_pu_query = "DELETE FROM producto_ubicacion WHERE ID_Ubicacion = ?";
             $stmt_pu = mysqli_prepare($conn, $delete_pu_query);
             
@@ -23,9 +23,9 @@
             }
             mysqli_stmt_close($stmt_pu);
 
-            // 2. Ahora, eliminar la ubicación de la tabla ubicacion
-            $delete_u_query = "DELETE FROM ubicacion WHERE ID_Ubicacion = ?"; // Corregido: ID_Ubicacion
-            $stmt_u = mysqli_prepare($conn, $delete_u_query); // Renombré la variable para claridad
+            
+            $delete_u_query = "DELETE FROM ubicacion WHERE ID_Ubicacion = ?"; 
+            $stmt_u = mysqli_prepare($conn, $delete_u_query);
             
             if (!$stmt_u) {
                 throw new Exception("Error al preparar la eliminación de la ubicación: " . mysqli_error($conn));
@@ -38,7 +38,7 @@
             }
             mysqli_stmt_close($stmt_u);
 
-            mysqli_commit($conn); // Confirmar ambas operaciones
+            mysqli_commit($conn); 
 
             echo "<script>
                 alert('Ubicación y sus asignaciones de productos eliminados correctamente.');
@@ -47,7 +47,7 @@
             exit();
 
         } catch (Exception $e) {
-            mysqli_rollback($conn); // Revertir si algo falla
+            mysqli_rollback($conn); 
             echo "<script>
                 alert('Error al eliminar la ubicación: " . addslashes($e->getMessage()) . "');
                 window.location.href = 'ubicacion.php'; // Volver a la lista de ubicaciones
@@ -55,7 +55,7 @@
             exit();
         }
     } else {
-        // Si no se proporcionó un ID de ubicación, redirigir
+        
         header('Location: ubicacion.php');
         exit();
     }

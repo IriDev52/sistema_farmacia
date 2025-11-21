@@ -3,9 +3,9 @@ include("../recursos/header.php");
 include("../conexion/conex.php");
 session_start();
 
-// 1. Verificar si se recibió un ID de producto para editar
+
 if (!isset($_GET['id'])) {
-    // Si no se recibe un ID, redirigir de vuelta a la lista de productos
+    
     $_SESSION['message'] = "Error: No se ha especificado un producto para editar.";
     $_SESSION['message_type'] = "danger";
     header("Location: productos.php");
@@ -14,13 +14,13 @@ if (!isset($_GET['id'])) {
 
 $id_producto = (int)$_GET['id'];
 
-// 2. Procesar la actualización del producto si el formulario ha sido enviado
+
 if (isset($_POST['actualizar_producto'])) {
     $id = (int)$_POST['id'];
     $nombre = mysqli_real_escape_string($conn, $_POST['nombre']);
     $descripcion = mysqli_real_escape_string($conn, $_POST['descripcion']);
     $laboratorio = mysqli_real_escape_string($conn, $_POST['laboratorio']);
-    $stock_actual = (int)$_POST['stock_actual']; // Usar el campo correcto para stock
+    $stock_actual = (int)$_POST['stock_actual']; 
     $stock_minimo = (int)$_POST['stock_minimo'];
     $fecha_vencimiento = $_POST['fecha_vencimiento'];
     $requiere_refrigeracion = strtolower(mysqli_real_escape_string($conn, $_POST['requiere_refrigeracion']));
@@ -28,12 +28,12 @@ if (isset($_POST['actualizar_producto'])) {
     $ubicacion = mysqli_real_escape_string($conn, $_POST['ubicacion_produ']);
     $estado = mysqli_real_escape_string($conn, $_POST['estado']);
 
-    // Validar datos
+    
     if (empty($nombre) || empty($laboratorio) || $stock_actual < 0 || empty($fecha_vencimiento) || empty($ubicacion) || $precio_venta <= 0) {
         $_SESSION['message'] = "Error: Por favor, complete todos los campos obligatorios.";
         $_SESSION['message_type'] = "danger";
     } else {
-        // Preparar la consulta UPDATE
+        
         $query = "UPDATE productos SET nombre_producto = ?, descripcion = ?, laboratorio_fabrica = ?, stock_actual = ?, stock_minimo = ?, fecha_vencimiento = ?, requiere_refrigeracion = ?, precio_venta = ?, ubicacion = ?, estado = ? WHERE id = ?";
         $stmt = mysqli_prepare($conn, $query);
 
@@ -57,7 +57,7 @@ if (isset($_POST['actualizar_producto'])) {
     exit();
 }
 
-// 3. Obtener los datos del producto a editar para mostrarlos en el formulario
+
 $producto_a_editar = null;
 $query_editar = "SELECT * FROM productos WHERE id = ?";
 $stmt_editar = mysqli_prepare($conn, $query_editar);
@@ -68,7 +68,7 @@ $resultado_editar = mysqli_stmt_get_result($stmt_editar);
 if ($resultado_editar && mysqli_num_rows($resultado_editar) > 0) {
     $producto_a_editar = mysqli_fetch_assoc($resultado_editar);
 } else {
-    // Si no se encuentra el producto, redirigir
+    
     $_SESSION['message'] = "Error: El producto no fue encontrado.";
     $_SESSION['message_type'] = "danger";
     header("Location: productos.php");
@@ -76,7 +76,7 @@ if ($resultado_editar && mysqli_num_rows($resultado_editar) > 0) {
 }
 mysqli_stmt_close($stmt_editar);
 
-// CÓDIGO AÑADIDO: VALIDACIÓN PARA NO EDITAR PRODUCTOS VENCIDOS
+
 $fecha_actual = date('Y-m-d');
 if ($producto_a_editar['fecha_vencimiento'] < $fecha_actual) {
     $_SESSION['message'] = "Error: No se puede editar un producto vencido. Por favor, desactívelo si es necesario.";
@@ -84,7 +84,7 @@ if ($producto_a_editar['fecha_vencimiento'] < $fecha_actual) {
     header("Location: productos.php");
     exit();
 }
-// FIN DEL CÓDIGO AÑADIDO
+
 
 ?>
 <!DOCTYPE html>

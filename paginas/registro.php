@@ -8,39 +8,44 @@ include("../recursos/header.php");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Usuario</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>Registro - Farmacia Barrancas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="../recursos/img/favicon-pharmacy.ico" type="image/x-icon">
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root {
-            --bg-color: #f8f9fa;
+            --primary-green: #28a745;
+            --dark-green: #1f7d32;
+            --primary-blue: #007bff;
+            --light-blue: #e8f0fe;
+            --text-dark: #343a40;
+            --text-light: #ffffff;
+            --input-border: #ced4da;
+            --input-focus: #80bdff;
+            --error-red: #dc3545;
+            --bg-gradient-start: #e2f7ea;
+            --bg-gradient-end: #d1f3e0;
             --card-bg: #ffffff;
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --text-dark: #212529;
-            --text-muted: #6c757d;
-            --border-color: #e9ecef;
-            --shadow-light: 0 8px 30px rgba(0, 0, 0, 0.08);
-            --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.05);
-            --focus-border: #007bff;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-strong: rgba(0, 0, 0, 0.25);
         }
 
         body, html {
             height: 100%;
             margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZmlsdGVyIGlkPSJhIj4KICAgIDxmZWdhdXNzaWFuYmx1ciBpbj0iU291cmNlR3JhcGhpYyIgcmVzdWx0PSJiIiBzdGREZXZpYXRpb249IjEuNSIvPgogICAgPGZlQ29sb3JNYXRyaXggaW49ImIiIHJlc3VsdD0iYyIgdHlwZT0ibWF0cml4IiB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIC43NCAwIi8+CiAgICA8ZmVPZmZzZXQgZHk9IjIiIGluPSJjIiByZXN1bHQ9ImQiLz4KICAgIDxmZUJsZW5kIGluPSJTb3VyY2VHcmFwaGljIiBpbj0iZCIvPgogIDwvZmlsdGVyPgoKICA8cGF0aCBkPSJtMCAwaDQwdjQwaC00MHoiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjA0KSIvPgogIDxwYXRoIGQ9Im00MCAwaC00MHYtNDBoNDB6IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4wNCkiLz4KICA8cGF0aCBkPSJtMCA0MHYtNDBoNDB2NDBoLTQwemIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwuMDQpIi8+CiAgPHBhdGggZD0ibTQwIDQwdjQwdi00MGwtNDAtNDB6IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4wNCkiLz4KPC9zdmc+'); /* Patrón sutil */
+            background-size: 70px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        
+
         .register-container {
             height: 100vh;
             display: flex;
@@ -51,108 +56,123 @@ include("../recursos/header.php");
         
         .register-card {
             background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 1.5rem;
-            padding: 3.5rem 3rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px var(--shadow-strong); 
+            overflow: hidden;
             width: 100%;
             max-width: 480px;
-            box-shadow: var(--shadow-light);
+            padding: 40px;
             text-align: center;
-            animation: fadeIn 0.8s ease-out;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .register-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
         }
 
-        .register-card .logo {
-            width: 80px;
-            height: 80px;
+        .register-card .logo-icon {
+            font-size: 70px;
             margin-bottom: 1.5rem;
-            color: var(--primary-color);
-            font-size: 3rem;
+            color: var(--primary-green);
+            animation: bounceIn 0.8s ease-out;
+        }
+        
+        @keyframes bounceIn {
+            0%, 20%, 40%, 60%, 80%, 100% {
+                transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            }
+            0% {
+                opacity: 0;
+                transform: scale3d(.3, .3, .3);
+            }
+            20% {
+                transform: scale3d(1.1, 1.1, 1.1);
+            }
+            40% {
+                transform: scale3d(.9, .9, .9);
+            }
+            60% {
+                opacity: 1;
+                transform: scale3d(1.03, 1.03, 1.03);
+            }
+            80% {
+                transform: scale3d(.97, .97, .97);
+            }
+            100% {
+                opacity: 1;
+                transform: scale3d(1, 1, 1);
+            }
         }
 
         .register-card h1 {
-            font-weight: 800;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
             color: var(--text-dark);
             font-size: 2.2rem;
             margin-bottom: 0.5rem;
         }
 
         .register-card h3 {
-            font-weight: 500;
+            font-weight: 400;
             color: var(--text-muted);
             margin-bottom: 2.5rem;
             font-size: 1.1rem;
         }
 
-        .form-label-elegant {
-            font-weight: 600;
-            color: var(--text-dark);
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-            text-align: left;
-            width: 100%;
-        }
-
-        .input-group-elegant {
+        .form-group {
+            margin-bottom: 25px;
             position: relative;
-            margin-bottom: 1.5rem;
             text-align: left;
         }
 
-        .input-group-elegant .form-control {
-            background-color: var(--bg-color);
-            border: 2px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 1.2rem 1.5rem 1.2rem 3.5rem;
-            font-size: 1rem;
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
             color: var(--text-dark);
-            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 1em;
+            color: var(--text-dark);
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
         
-        .input-group-elegant .form-control::placeholder {
+        .form-group input::placeholder {
             color: #adb5bd;
             font-weight: 400;
         }
         
-        .input-group-elegant .form-control:focus {
-            background-color: #ffffff;
-            border-color: var(--focus-border);
-            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.1);
+        .form-group input:focus {
             outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
         }
 
-        .input-group-elegant .input-icon {
+        .input-icon-inside {
             position: absolute;
-            left: 1.2rem;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--secondary-color);
             pointer-events: none;
-            font-size: 1.3rem;
-            transition: color 0.3s ease;
+            font-size: 1.1em;
         }
-        
-        .input-group-elegant .form-control:focus + .input-icon {
-            color: var(--primary-color);
-        }
-        
+
         .show-password-toggle {
             display: flex;
             align-items: center;
             justify-content: flex-start;
             gap: 0.5rem;
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
+            margin-bottom: 25px;
+            font-size: 0.9em;
             color: var(--text-muted);
             cursor: pointer;
         }
@@ -161,48 +181,79 @@ include("../recursos/header.php");
             cursor: pointer;
             width: 1.1rem;
             height: 1.1rem;
-            accent-color: var(--primary-color);
+            accent-color: var(--primary-green);
             border-radius: 0.25rem;
         }
         
-        .btn-register-elegant {
+        .btn-register {
             width: 100%;
-            background-color: var(--primary-color);
+            background-color: var(--primary-green);
             border: none;
-            border-radius: 2rem;
-            padding: 1.2rem;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.15em;
             font-weight: 700;
             color: white;
-            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
             text-transform: uppercase;
         }
-        .btn-register-elegant:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.35);
+        .btn-register:hover {
+            background-color: var(--dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.35);
         }
-        .btn-register-elegant:active {
+        .btn-register:active {
             transform: translateY(1px);
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
         }
 
         .login-link {
-            font-size: 0.9rem;
-            margin-top: 2rem;
+            font-size: 0.9em;
+            margin-top: 30px;
             color: var(--text-muted);
+            text-align: center;
         }
         
         .login-link a {
-            color: var(--primary-color);
+            color: var(--primary-blue);
             font-weight: 600;
             text-decoration: none;
             transition: color 0.3s ease;
         }
         
         .login-link a:hover {
-            color: #0056b3;
+            color: var(--dark-green);
             text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .register-card {
+                max-width: 400px;
+                padding: 30px;
+            }
+            .register-card h1 {
+                font-size: 2em;
+            }
+            .register-card h3 {
+                font-size: 1em;
+            }
+        }
+        @media (max-width: 480px) {
+            .register-card {
+                width: 95%;
+                padding: 25px;
+            }
+            .register-card .logo-icon {
+                font-size: 60px;
+            }
+            .register-card h1 {
+                font-size: 1.8em;
+            }
+            .btn-register {
+                padding: 12px;
+                font-size: 1em;
+            }
         }
     </style>
 </head>
@@ -212,16 +263,20 @@ include("../recursos/header.php");
 if (isset($_POST['registrar_user'])) {
     $correo = $_POST['correo'];
     $clave = $_POST['clave'];
-    $query = "INSERT INTO usuarios(correo, clave) VALUES('$correo','$clave')";
-    $result = mysqli_query($conn, $query);
 
-    if ($result) {
+    $clave_hasheada = password_hash($clave, PASSWORD_DEFAULT);
+
+
+    $stmt = $conn->prepare("INSERT INTO usuarios(correo, clave) VALUES(?, ?)");
+    $stmt->bind_param("ss", $correo, $clave_hasheada);
+
+    if ($stmt->execute()) {
         echo '<script>
             document.addEventListener("DOMContentLoaded", function() {
                 Swal.fire({
                     icon: "success",
                     title: "¡Registro Exitoso!",
-                    text: "El usuario ha sido registrado correctamente.",
+                    text: "El usuario ha sido registrado correctamente. Ahora puedes iniciar sesión.",
                     confirmButtonText: "Aceptar",
                     confirmButtonColor: "#28a745",
                     customClass: {
@@ -229,7 +284,7 @@ if (isset($_POST['registrar_user'])) {
                         confirmButton: "rounded-pill"
                     }
                 }).then(() => {
-                    window.location.href = "login.php"; // Redirige al login después de la alerta
+                    window.location.href = "../index.php"; 
                 });
             });
         </script>';
@@ -239,7 +294,7 @@ if (isset($_POST['registrar_user'])) {
                 Swal.fire({
                     icon: "error",
                     title: "Error en el Registro",
-                    text: "Hubo un problema al registrar el usuario. Por favor, inténtalo de nuevo.",
+                    text: "Hubo un problema al registrar el usuario o el correo ya está en uso. Por favor, inténtalo de nuevo.",
                     confirmButtonText: "Entendido",
                     confirmButtonColor: "#dc3545",
                     customClass: {
@@ -250,24 +305,26 @@ if (isset($_POST['registrar_user'])) {
             });
         </script>';
     }
+    $stmt->close();
 }
 ?>
 
 <main class="register-container">
     <div class="register-card">
-        <i class="bi bi-person-add logo"></i>
+        <i class="fa-solid fa-user-plus logo-icon"></i>
+        
         <h1>Crear Cuenta</h1>
-        <h3>Únete a nuestro sistema de gestión</h3>
+        <h3>Únete a nuestro sistema de gestión de farmacia</h3>
         
         <form action="registro.php" method="POST">
-            <div class="input-group-elegant">
-                <input required type="email" name="correo" class="form-control" placeholder="Correo electrónico">
-                <span class="input-icon"><i class="bi bi-envelope"></i></span>
+            <div class="form-group">
+                <label for="correo">Correo Electrónico</label>
+                <input required type="email" name="correo" id="correo" class="form-control" placeholder="nombre@ejemplo.com" autocomplete="email">
             </div>
             
-            <div class="input-group-elegant">
-                <input required type="password" name="clave" class="form-control" placeholder="Contraseña" id="passwordInput">
-                <span class="input-icon"><i class="bi bi-lock"></i></span>
+            <div class="form-group">
+                <label for="clave">Contraseña</label>
+                <input required type="password" name="clave" id="clave" class="form-control" placeholder="••••••••" autocomplete="new-password">
             </div>
             
             <div class="show-password-toggle">
@@ -275,21 +332,20 @@ if (isset($_POST['registrar_user'])) {
                 <label for="showPasswordToggle">Mostrar contraseña</label>
             </div>
             
-            <button type="submit" class="btn btn-register-elegant" name="registrar_user">
+            <button type="submit" class="btn-register" name="registrar_user">
                 Registrarse
             </button>
         </form>
         
         <p class="login-link">
-            ¿Ya tienes una cuenta? <a href="login.php">Inicia sesión aquí</a>
+            ¿Ya tienes una cuenta? <a href="../index.php">Inicia sesión aquí</a>
         </p>
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const passwordInput = document.getElementById('passwordInput');
+    const passwordInput = document.getElementById('clave');
     const showPasswordToggle = document.getElementById('showPasswordToggle');
     
     if (showPasswordToggle && passwordInput) {
@@ -305,4 +361,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
-<?php include("../recursos/footer.php")?>
+<?php
+

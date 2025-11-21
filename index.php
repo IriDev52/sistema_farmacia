@@ -1,6 +1,7 @@
 <?php
-include("../recursos/header.php");
-include("../conexion/conex.php");
+include("recursos/header.php");
+include("conexion/conex.php");
+
 session_start();
 
 $error_message = "";
@@ -22,7 +23,7 @@ if (!empty($_POST['comprobar'])) {
 
         if ($result_login->num_rows > 0) {
             $_SESSION['usuario'] = $usuario;
-            header("Location: inicio.php");
+            header("Location: paginas/inicio.php");
             exit();
         } else {
             $error_message = "Contraseña incorrecta. Por favor, inténtelo de nuevo.";
@@ -43,12 +44,12 @@ if (!empty($_POST['comprobar'])) {
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --left-bg-color: #00838F; /* Teal oscuro */
-            --right-bg-color: #FAFAFA; /* Blanco cremoso */
-            --text-dark: #333333; /* Gris oscuro para el texto principal */
-            --text-light: #FFFFFF; /* Blanco */
-            --accent-color: #006064; /* Teal más oscuro para botones/hover */
-            --body-bg: #B2EBF2; /* Azul claro / Cian */
+            --left-bg-color: #00838F;
+            --right-bg-color: #FAFAFA;
+            --text-dark: #333333;
+            --text-light: #FFFFFF;
+            --accent-color: #006064;
+            --body-bg: #B2EBF2;
             --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
             --shadow-strong: 0 10px 30px rgba(0, 0, 0, 0.2);
             --error-red: #dc3545;
@@ -252,7 +253,7 @@ if (!empty($_POST['comprobar'])) {
 
 <div class="container">
     <div class="left-section">
-        <img src="../logo_farmacia.jpeg" alt="Logo de Farmacia C.A." class="logo">
+        <img src="logo_farmacia.jpeg" alt="Logo de Farmacia C.A." class="logo">
         <h1>Bienvenido</h1>
         <p>Inicia sesión para acceder a tu sistema de inventario de farmacia.</p>
     </div>
@@ -265,7 +266,7 @@ if (!empty($_POST['comprobar'])) {
             echo '<div class="error-message">' . htmlspecialchars($error_message) . '</div>';
         }
         ?>
-        <form action="login.php" method="POST">
+        <form action="index.php" method="POST">
             <div class="input-group">
                 <input type="email" name="correo" id="correo" placeholder="Correo electrónico" required>
             </div>
@@ -279,7 +280,7 @@ if (!empty($_POST['comprobar'])) {
             <button type="submit" class="btn" name="comprobar" value="1">Ingresar</button>
         </form>
         <div class="link-text">
-            <span>¿No tienes una cuenta? <a href="registro.php">Regístrate aquí</a></span>
+            <span>¿No tienes una cuenta? <a href="paginas/registro.php">Regístrate aquí</a></span>
         </div>
     </div>
 </div>

@@ -66,15 +66,13 @@ switch ($action) {
             $ubicacion_destino = $_POST['ubicacion_destino'] ?? null;
             $fecha_vencimiento = $_POST['fecha_vencimiento'] ?? null;
 
-            // TODO: Obtener el ID del usuario de la sesión. Si no hay sesión, usa un valor por defecto.
-            // Por ejemplo: $usuario_id = $_SESSION['usuario_id'] ?? 1;
-            // Usaremos 1 para el ejemplo, pero deberías cambiarlo.
+            
             $usuario_id = 1; 
 
             if ($id_producto && is_numeric($cantidad) && $cantidad > 0 && $ubicacion_destino) {
                 mysqli_begin_transaction($conn);
                 try {
-                    // 1. Obtener stock actual y ubicación de origen
+                    
                     $query_get_stock = "SELECT stock_actual, nombre_producto, ubicacion FROM productos WHERE id = ?";
                     $stmt_get = mysqli_prepare($conn, $query_get_stock);
                     mysqli_stmt_bind_param($stmt_get, 'i', $id_producto);
@@ -88,13 +86,13 @@ switch ($action) {
                         $nombre_producto = $product['nombre_producto'];
                         $nuevo_stock = $stock_anterior + $cantidad;
                         
-                        // 2. Actualizar el stock y la ubicación en la tabla 'productos'
+                       
                         $query_update_stock = "UPDATE productos SET stock_actual = ?, ubicacion = ? WHERE id = ?";
                         $stmt_update = mysqli_prepare($conn, $query_update_stock);
                         mysqli_stmt_bind_param($stmt_update, 'isi', $nuevo_stock, $ubicacion_destino, $id_producto);
                         $update_success = mysqli_stmt_execute($stmt_update);
 
-                        // 3. Actualizar la fecha de vencimiento si se proporciona
+                       
                         if ($fecha_vencimiento && !empty($fecha_vencimiento)) {
                             $query_update_vencimiento = "UPDATE productos SET fecha_vencimiento = ? WHERE id = ?";
                             $stmt_update_venc = mysqli_prepare($conn, $query_update_vencimiento);
@@ -102,11 +100,11 @@ switch ($action) {
                             mysqli_stmt_execute($stmt_update_venc);
                         }
 
-                        // 4. Registrar el movimiento en la tabla 'movimientos_inventario'
+                      
                         $tipo_movimiento = 'Entrada';
                         $observaciones = "Entrada de stock. Se suman {$cantidad} unidades. Ubicación anterior: {$ubicacion_origen}. Ubicación actual: {$ubicacion_destino}.";
                         
-                        // NOTA: Se ha ajustado la consulta para que coincida con tus columnas
+                        
                         $query_insert_mov = "INSERT INTO movimientos_inventario (id_producto, tipo_movimiento, cantidad, stock_antes, stock_despues, ubicacion, observaciones, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                         $stmt_insert = mysqli_prepare($conn, $query_insert_mov);
                         mysqli_stmt_bind_param($stmt_insert, 'isiiissi', $id_producto, $tipo_movimiento, $cantidad, $stock_anterior, $nuevo_stock, $ubicacion_destino, $observaciones, $usuario_id);

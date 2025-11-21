@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = "";
 
     try {
-        // 1. Obtener el stock actual y la fecha de vencimiento antes de la actualización
+
         $get_stock_query = "SELECT stock_actual, fecha_vencimiento FROM productos WHERE id = ?";
         $stmt_get_stock = mysqli_prepare($conn, $get_stock_query);
         if (!$stmt_get_stock) {
@@ -42,8 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $new_stock_actual = $current_stock_actual + $cantidad_entrada;
 
-        // 2. Preparar y ejecutar el UPDATE
-        // Usamos una consulta diferente dependiendo de si hay una nueva fecha de vencimiento
+
         if ($fecha_vencimiento) {
             $update_query = "UPDATE productos SET stock_actual = ?, ubicacion = ?, fecha_vencimiento = ? WHERE id = ?";
             $stmt_update = mysqli_prepare($conn, $update_query);
@@ -66,11 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         mysqli_stmt_close($stmt_update);
 
-        // 3. Registrar el movimiento en el historial
+       
         if ($success) {
             $log_movement_query = "INSERT INTO movimientos_inventario (id_producto, tipo_movimiento, cantidad, stock_antes, stock_despues, ubicacion, observaciones) VALUES (?, 'Entrada', ?, ?, ?, ?, ?)";
 
-            // Añadir información de lote y vencimiento a las observaciones si están disponibles
+        
             $full_observaciones = $observaciones;
             if (!empty($numero_lote)) {
                 $full_observaciones .= ($full_observaciones ? ' | ' : '') . "Lote: " . $numero_lote;
@@ -92,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_close($stmt_log_movement);
         }
 
-        // 4. Confirmar o revertir la transacción
+        
         if ($success) {
             mysqli_commit($conn);
             $response['success'] = true;

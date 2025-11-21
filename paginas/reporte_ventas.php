@@ -4,45 +4,37 @@ include('../conexion/conex.php');
 session_start();
 
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario'] === null) {
-    header("Location: login.php");
+    header("Location: ../index.php");
     exit();
 }
 
-// =================================================================
-// === SISTEMA DE CACHÉ PARA LA TASA DE CAMBIO DEL BCV ===
-// =================================================================
-// Nueva API para la tasa del BCV
-$api_url = 'https://pydolarvenezuela-api.vercel.app/api/v1/dollar/bcv'; 
-$cache_file = 'tasa_bcv_cache.txt'; // Nombre del archivo de caché
-$cache_duration = 4 * 3600;      // Duración del caché en segundos (4 horas)
-$fallback_rate = 38.5;           // Tasa de respaldo si todo lo demás falla (ajustada para el BCV)
+$api_url = 'https://pydolarvenezuela-api.vercel.app/api/v1/dollar/bcv';
+$cache_file = '../cache/tasa_bcv_cache.txt';
+$cache_duration = 4 * 3600;
+$fallback_rate = 110;
 
-$tasa_cambio_dolar_a_bs = $fallback_rate; // Se inicia con la tasa de respaldo
-
-// 1. Verificar si el archivo de caché existe y no ha expirado
+$tasa_cambio_dolar_a_bs = $fallback_rate;
 if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_duration) {
-    // La caché es válida, lee la tasa del archivo
     $tasa_cacheada = file_get_contents($cache_file);
     if ($tasa_cacheada !== false && is_numeric($tasa_cacheada)) {
         $tasa_cambio_dolar_a_bs = (float)$tasa_cacheada;
     }
 } else {
-    // 2. La caché ha expirado o no existe, obtener la tasa de la API
+    if (!is_dir('../cache')) {
+        mkdir('../cache', 0755, true);
+    }
     $json_data = @file_get_contents($api_url);
 
     if ($json_data !== false) {
         $data = json_decode($json_data, true);
-        // Verifica si los datos esperados existen en la respuesta JSON de esta nueva API
+        
         if (isset($data['price']) && is_numeric($data['price'])) {
             $tasa_obtenida = (float)$data['price'];
             $tasa_cambio_dolar_a_bs = $tasa_obtenida;
-            // Guardar la nueva tasa en el archivo de caché
             file_put_contents($cache_file, $tasa_obtenida);
         }
     }
 }
-// Fin del sistema de caché
-// =================================================================
 
 $sql = "SELECT id, fecha_venta, total FROM ventas ORDER BY fecha_venta DESC";
 $resultado = $conn->query($sql);
@@ -57,215 +49,339 @@ if ($resultado === false) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de Ventas - Farmacia C.A.</title>
+    <title>Reporte de Ventas - Farmacia Barrancas</title>
+    <link rel="icon" href="../recursos/img/favicon-pharmacy.ico" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --header-bg: #2d3748; /* Darker blue-grey */
-            --header-text: #ffffff;
-            --primary-color: #4c6ef5; /* A new, vibrant blue */
-            --secondary-color: #a0aec0;
-            --text-color-dark: #212529;
-            --bg-light: #f7fafc; /* Light grey background */
+            --primary-dark: #2c3e50;
+            --primary-light: #34495e;
+            --accent-green: #2ecc71;
+            --accent-green-dark: #27ae60;
+            --background-light: #f4f7f6;
             --card-bg: #ffffff;
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            --card-hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --error-red: #e74c3c;
+            --info-blue: #3498db;
+            --return-button-bg: #6c757d; 
+            --return-button-hover: #5a6268;
         }
+
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--bg-light);
-            color: var(--text-color-dark);
+            background-color: var(--background-light);
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
+
         .header {
-            background-color: var(--header-bg);
-            color: var(--header-text);
+            background-color: var(--primary-dark);
+            color: var(--primary-light);
             padding: 1rem 3rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-medium);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
+
         .header-logo {
             display: flex;
             align-items: center;
             gap: 15px;
         }
+
         .header-logo i {
-            font-size: 2rem;
-            color: var(--primary-color);
+            font-size: 2.2rem;
+            color: var(--accent-green);
         }
+
         .header-logo h2 {
-            font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin: 0;
+            color: var(--card-bg);
         }
+
         .header-nav {
             list-style: none;
             padding: 0;
             margin: 0;
             display: flex;
-            gap: 2rem;
+            gap: 1.8rem;
         }
+
         .header-nav-link {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 0.8rem 1rem;
+            padding: 0.7rem 1.2rem;
             text-decoration: none;
-            color: var(--header-text);
-            font-weight: 600;
-            font-size: 1rem;
+            color: var(--primary-light);
+            font-weight: 500;
+            font-size: 0.95rem;
             border-radius: 8px;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: all 0.3s ease;
         }
+
         .header-nav-link i {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
+
         .header-nav-link:hover, .header-nav-link.active {
-            background-color: var(--primary-color);
-            color: var(--header-text);
+            background-color: var(--accent-green);
+            color: var(--card-bg);
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
         }
+
         .user-actions {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        .logout-btn {
-            background-color: transparent;
-            color: var(--secondary-color);
-            border: 1px solid var(--secondary-color);
-            padding: 0.8rem 1.8rem;
+
+        /* Estilo para el botón de regresar/volver */
+        .return-btn {
+            background-color: var(--return-button-bg);
+            color: white;
+            border: 1px solid var(--return-button-bg);
+            padding: 0.7rem 1.5rem;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .logout-btn:hover {
-            background-color: #dc3545;
-            color: white;
-            border-color: #dc3545;
-            transform: translateY(-3px);
+
+        .return-btn:hover {
+            background-color: var(--return-button-hover);
+            border-color: var(--return-button-hover);
+            transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
+
         .main-content {
             flex-grow: 1;
-            padding: 3rem;
-            max-width: 1200px;
+            padding: 2.5rem 2rem;
+            max-width: 1300px;
             margin: 0 auto;
             width: 100%;
         }
+
         .report-header {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             text-align: center;
+            position: relative;
         }
+
         .report-header h1 {
-            font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            font-size: 2.8rem;
+            font-size: 3rem;
             margin: 0;
-            color: var(--text-color-dark);
+            color: var(--primary-dark);
             position: relative;
             display: inline-block;
+            letter-spacing: -0.05em;
         }
+
         .report-header h1::after {
             content: '';
             position: absolute;
             left: 50%;
-            bottom: -10px;
+            bottom: -15px;
             transform: translateX(-50%);
-            width: 80px;
-            height: 5px;
-            background-color: var(--primary-color);
+            width: 100px;
+            height: 6px;
+            background-color: var(--accent-green);
             border-radius: 5px;
         }
-        .report-header p {
+
+        .report-description {
             font-size: 1.1rem;
             color: #6c757d;
+            margin-top: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tasa-info-card {
+            background-color: var(--info-blue);
+            color: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             margin-top: 1.5rem;
-        }
-        .report-info {
-            display: inline-block;
-            background-color: #e2e8f0;
-            color: #4a5568;
-            padding: 5px 15px;
-            border-radius: 20px;
+            font-size: 1.1rem;
             font-weight: 600;
-            font-size: 0.9rem;
-            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
         }
+
+        .tasa-info-card i {
+            font-size: 1.5rem;
+        }
+
         .report-container {
             background-color: var(--card-bg);
             border-radius: 1rem;
-            box-shadow: var(--card-shadow);
+            box-shadow: var(--shadow-light);
             padding: 2.5rem;
             overflow-x: auto;
+            margin-top: 2.5rem;
         }
+
         .data-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1.5rem;
+            min-width: 600px;
         }
+
         .data-table th, .data-table td {
-            padding: 1.2rem;
+            padding: 1.2rem 1.5rem;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-color);
         }
+
         .data-table th {
-            background-color: #edf2f7;
-            color: #4a5568;
-            font-weight: 700;
-            font-size: 0.95rem;
+            background-color: var(--background-light);
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
+
+        .data-table th:first-child {
+            border-top-left-radius: 0.75rem;
+        }
+        .data-table th:last-child {
+            border-top-right-radius: 0.75rem;
+        }
+
         .data-table .currency-col {
             text-align: right;
+            font-weight: 500;
         }
+
         .data-table tbody tr:hover {
-            background-color: #f0f3f6;
+            background-color: #f0f4f7;
+            transition: background-color 0.2s ease;
         }
+
         .data-table tbody tr:last-child td {
             border-bottom: none;
         }
+
+        .data-table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 0.75rem;
+        }
+        .data-table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 0.75rem;
+        }
+
         .alert-message {
             padding: 1.5rem;
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
+            background-color: #fcebeb;
+            color: var(--error-red);
+            border: 1px solid #f5c6cb;
             border-radius: 0.75rem;
             text-align: center;
             font-weight: 600;
+            margin-top: 1.5rem;
         }
+
         @media (max-width: 992px) {
             .header {
                 flex-direction: column;
                 gap: 1rem;
                 padding: 1rem;
+                text-align: center;
             }
             .header-nav {
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 1rem;
+                gap: 0.8rem;
+            }
+            .header-logo h2 {
+                font-size: 1.4rem;
+            }
+            .header-nav-link {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            .user-actions {
+                margin-top: 1rem;
+                justify-content: center;
+            }
+            .return-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
             }
             .main-content {
                 padding: 2rem 1rem;
             }
             .report-header h1 {
-                font-size: 2rem;
+                font-size: 2.2rem;
+            }
+            .report-description {
+                font-size: 1rem;
+            }
+            .tasa-info-card {
+                font-size: 1rem;
+                padding: 0.8rem 1.2rem;
+            }
+            .report-container {
+                padding: 1.5rem;
+            }
+            .data-table th, .data-table td {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 1rem 0.5rem;
+            }
+            .header-logo {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .header-logo h2 {
+                font-size: 1.2rem;
+            }
+            .header-nav {
+                gap: 0.5rem;
+            }
+            .header-nav-link {
+                font-size: 0.85rem;
+                gap: 5px;
+            }
+            .report-header h1 {
+                font-size: 1.8rem;
+            }
+            .report-header h1::after {
+                bottom: -10px;
+                width: 70px;
+                height: 4px;
             }
         }
     </style>
@@ -274,7 +390,7 @@ if ($resultado === false) {
     <header class="header">
         <div class="header-logo">
             <i class="ri-hospital-line"></i>
-            <h2>Farmacia C.A.</h2>
+            <h2>Farmacia Barrancas</h2>
         </div>
         <nav>
             <ul class="header-nav">
@@ -286,16 +402,19 @@ if ($resultado === false) {
             </ul>
         </nav>
         <div class="user-actions">
-            <a href="cerrarSesion.php" class="logout-btn">
-                <i class="ri-logout-box-line"></i> Salir
+            <a href="inicio.php" class="return-btn">
+                <i class="ri-arrow-left-line"></i> Regresar al inicio
             </a>
         </div>
     </header>
     <main class="main-content">
         <header class="report-header">
             <h1>Reporte de Ventas</h1>
-            <p>Listado de todas las ventas registradas en el sistema.</p>
-            <span class="report-info">Tasa Dólar: BCV</span>
+            <p class="report-description">Aquí puedes visualizar un resumen detallado de todas las transacciones de ventas registradas en tu sistema.</p>
+            <div class="tasa-info-card">
+                <i class="ri-money-dollar-circle-line"></i>
+                <span>Tasa BCV: $1 USD = Bs <?php echo number_format($tasa_cambio_dolar_a_bs, 2, ',', '.'); ?></span>
+            </div>
         </header>
         <div class="report-container">
             <?php

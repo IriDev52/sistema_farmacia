@@ -2,10 +2,19 @@
 session_start();
 include('../conexion/conex.php');
 
+
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario'] === null) {
-    header("Location: login.php");
+    header("Location: ../index.php");
     exit();
 }
+
+
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: ../index.php");
+    exit();
+}
+
 
 $query_total_productos = "SELECT COUNT(id) AS total FROM productos WHERE estado = 'Activo'";
 $result_total_productos = mysqli_query($conn, $query_total_productos);
@@ -29,7 +38,7 @@ $ventas_mes_meta = 500;
 $ventas_mes_actual = 385;
 $porcentaje_ventas_mes = ($ventas_mes_actual / $ventas_mes_meta) * 100;
 
-$nombre_farmacia = "Farmacia C.A.";
+$nombre_farmacia = "Farmacia Barrancas"; 
 
 mysqli_close($conn);
 ?>
@@ -41,14 +50,15 @@ mysqli_close($conn);
     <title>Panel de Control - <?php echo htmlspecialchars($nombre_farmacia); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="../recursos/img/favicon-pharmacy.ico" type="image/x-icon"> 
     <style>
         :root {
             --bg-body: #F4F7FE;
             --bg-card: #FFFFFF;
             --text-dark: #1A202C;
             --text-muted: #718096;
-            --primary-blue-light: #4A90E2; /* Azul Claro */
-            --primary-blue-dark: #00008B; /* Azul Rey */
+            --primary-blue-light: #4A90E2;
+            --primary-blue-dark: #00008B;
             --accent-green: #2ecc71;
             --accent-red: #e74c3c;
             --shadow-base: 0 4px 15px rgba(0, 0, 0, 0.08);
@@ -344,7 +354,7 @@ mysqli_close($conn);
             </ul>
         </nav>
         <div class="user-actions">
-            <a href="cerrarSesion.php">Salir</a>
+            <a href="?logout=true">Salir</a> 
         </div>
     </header>
 

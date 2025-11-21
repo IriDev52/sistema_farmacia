@@ -12,7 +12,7 @@ if ($product_id === 0) {
 $product_data = [];
 $ubicaciones_con_stock = [];
 
-// Obtener datos generales del producto
+
 $query_product = "SELECT id, nombre_producto, stock_actual FROM productos WHERE id = ?";
 $stmt_product = mysqli_prepare($conn, $query_product);
 mysqli_stmt_bind_param($stmt_product, "i", $product_id);
@@ -26,7 +26,7 @@ if (!$product_data) {
     exit();
 }
 
-// Obtener ubicaciones y stock para este producto
+
 $query_ubicaciones = "
     SELECT
         pu.ID_Ubicacion,

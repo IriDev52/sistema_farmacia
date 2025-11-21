@@ -1,7 +1,7 @@
 <?php
-// registrar_venta.php
 
-include("../conexion/conex.php"); // Asegúrate de que esta ruta sea correcta
+
+include("../conexion/conex.php");
 
 header('Content-Type: application/json');
 
@@ -17,7 +17,7 @@ if (!isset($data['productos']) || !is_array($data['productos']) || empty($data['
 
 mysqli_autocommit($conn, FALSE);
 $transaction_successful = TRUE;
-$idVenta = null; // Inicializamos idVenta
+$idVenta = null; 
 
 try {
     $stmtVenta = mysqli_prepare($conn, "INSERT INTO ventas (fecha_venta, total) VALUES (NOW(), ?)");
@@ -35,7 +35,7 @@ try {
     if (!mysqli_stmt_execute($stmtVenta)) {
         throw new Exception('Error al ejecutar la inserción de venta: ' . mysqli_stmt_error($stmtVenta));
     }
-    $idVenta = mysqli_insert_id($conn); // Obtenemos el ID de la venta
+    $idVenta = mysqli_insert_id($conn); 
     mysqli_stmt_close($stmtVenta);
 
     $stmtDetalle = mysqli_prepare($conn, "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
@@ -62,7 +62,7 @@ try {
     mysqli_commit($conn);
     $transaction_successful = TRUE;
 
-    // AQUI EL CAMBIO CLAVE: Devolvemos el ID de la venta
+    
     echo json_encode(['success' => true, 'message' => 'Venta registrada exitosamente.', 'id_venta' => $idVenta]);
 
 } catch (Exception $e) {

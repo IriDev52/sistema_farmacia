@@ -1,5 +1,5 @@
 <?php
-// Incluir el archivo de conexión a la base de datos
+
 include("../conexion/conex.php");
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -23,7 +23,7 @@ if ($conn->connect_error) {
     exit();
 }
 
-// 1. Obtener los datos principales de la venta
+
 $sql_venta = "SELECT id, fecha_venta, total FROM ventas WHERE id = ?";
 if ($stmt_venta = $conn->prepare($sql_venta)) {
     $stmt_venta->bind_param("i", $id_venta);
@@ -43,7 +43,7 @@ if ($stmt_venta = $conn->prepare($sql_venta)) {
     exit();
 }
 
-// 2. Obtener los detalles de los productos de la venta
+
 $sql_detalles = "
     SELECT 
         dv.cantidad, 
