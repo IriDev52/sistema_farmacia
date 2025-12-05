@@ -3,13 +3,17 @@ session_start();
 include('../conexion/conex.php');
 
 
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario'] === null) {
+// 1. **Control de Sesión Coherente**
+if (!isset($_SESSION['logeado']) || $_SESSION['logeado'] !== true) {
     header("Location: ../index.php");
     exit();
 }
-
+// Aquí puedes usar $_SESSION['usuario_correo'] y $_SESSION['usuario_id'] si los necesitas
+// Por ejemplo, para mostrar el nombre del usuario logeado en el header (¡buena práctica!)
 
 if (isset($_GET['logout'])) {
+    // El proceso de logout está bien, pero idealmente se hace en un archivo 'logout.php' separado
+    // para un flujo limpio de la URL (Post/Redirect/Get).
     session_destroy();
     header("Location: ../index.php");
     exit();
@@ -360,7 +364,7 @@ mysqli_close($conn);
 
     <main class="dashboard-container">
         <div class="grid-container">
-            <div class="card">
+            <div class="card">  
                 <div class="card-header">
                     <h2 class="card-title">Inventario</h2>
                     <i class="ri-archive-line card-icon"></i>

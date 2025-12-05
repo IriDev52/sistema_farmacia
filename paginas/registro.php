@@ -1,6 +1,94 @@
 <?php
 include("../conexion/conex.php");
 include("../recursos/header.php");
+
+
+
+if (isset($_POST['registrar_user'])) {
+    
+    $correo = trim($_POST['correo']);
+    $clave = $_POST['clave'];
+
+    // =========================================================
+    // PASO CRÍTICO 1: Verificar si el correo ya existe
+    // =========================================================
+    $sql_check = "SELECT id FROM usuarios WHERE correo = ?";
+    if ($stmt_check = $conn->prepare($sql_check)) {
+        $stmt_check->bind_param("s", $correo);
+        $stmt_check->execute();
+        $stmt_check->store_result();
+        
+        if ($stmt_check->num_rows > 0) {
+            // El usuario ya existe
+            echo '<script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "¡Correo ya Registrado!",
+                        text: "El correo electrónico ' . htmlspecialchars($correo) . ' ya está en uso. Por favor, inicia sesión.",
+                        confirmButtonText: "Ir a Iniciar Sesión",
+                        confirmButtonColor: "#ffc107",
+                        customClass: { popup: "rounded-5", confirmButton: "rounded-pill" }
+                    }).then(() => {
+                        window.location.href = "../index.php"; 
+                    });
+                });
+            </script>';
+            $stmt_check->close();
+            // Salir para no procesar el resto del script PHP/HTML
+            exit(); 
+        }
+        $stmt_check->close();
+    }
+    // =========================================================
+    // PASO CRÍTICO 2: Continuar con el registro seguro
+    // =========================================================
+
+    // Generar el hash de la contraseña
+    $clave_hasheada = password_hash($clave, PASSWORD_DEFAULT);
+
+    // Insertar el nuevo usuario
+    $sql_insert = "INSERT INTO usuarios(correo, clave) VALUES(?, ?)";
+    if ($stmt_insert = $conn->prepare($sql_insert)) {
+        $stmt_insert->bind_param("ss", $correo, $clave_hasheada);
+
+        if ($stmt_insert->execute()) {
+            echo '<script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    Swal.fire({
+                        icon: "success",
+                        title: "¡Registro Exitoso!",
+                        text: "El usuario ha sido registrado correctamente. Ahora puedes iniciar sesión.",
+                        confirmButtonText: "Aceptar",
+                        confirmButtonColor: "#28a745",
+                        customClass: { popup: "rounded-5", confirmButton: "rounded-pill" }
+                    }).then(() => {
+                        window.location.href = "../index.php"; 
+                    });
+                });
+            </script>';
+        } else {
+            // Error en la inserción (ej. error de conexión)
+            error_log("Error al insertar usuario: " . $stmt_insert->error);
+            echo '<script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error en el Registro",
+                        text: "Hubo un problema al registrar el usuario. Inténtalo más tarde.",
+                        confirmButtonText: "Entendido",
+                        confirmButtonColor: "#dc3545",
+                        customClass: { popup: "rounded-5", confirmButton: "rounded-pill" }
+                    });
+                });
+            </script>';
+        }
+        $stmt_insert->close();
+    } else {
+         error_log("Error al preparar la consulta de inserción: " . $conn->error);
+         // Mostrar error interno al usuario si es necesario
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -259,55 +347,6 @@ include("../recursos/header.php");
 </head>
 <body>
 
-<?php
-if (isset($_POST['registrar_user'])) {
-    $correo = $_POST['correo'];
-    $clave = $_POST['clave'];
-
-    $clave_hasheada = password_hash($clave, PASSWORD_DEFAULT);
-
-
-    $stmt = $conn->prepare("INSERT INTO usuarios(correo, clave) VALUES(?, ?)");
-    $stmt->bind_param("ss", $correo, $clave_hasheada);
-
-    if ($stmt->execute()) {
-        echo '<script>
-            document.addEventListener("DOMContentLoaded", function() {
-                Swal.fire({
-                    icon: "success",
-                    title: "¡Registro Exitoso!",
-                    text: "El usuario ha sido registrado correctamente. Ahora puedes iniciar sesión.",
-                    confirmButtonText: "Aceptar",
-                    confirmButtonColor: "#28a745",
-                    customClass: {
-                        popup: "rounded-5",
-                        confirmButton: "rounded-pill"
-                    }
-                }).then(() => {
-                    window.location.href = "../index.php"; 
-                });
-            });
-        </script>';
-    } else {
-        echo '<script>
-            document.addEventListener("DOMContentLoaded", function() {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error en el Registro",
-                    text: "Hubo un problema al registrar el usuario o el correo ya está en uso. Por favor, inténtalo de nuevo.",
-                    confirmButtonText: "Entendido",
-                    confirmButtonColor: "#dc3545",
-                    customClass: {
-                        popup: "rounded-5",
-                        confirmButton: "rounded-pill"
-                    }
-                });
-            });
-        </script>';
-    }
-    $stmt->close();
-}
-?>
 
 <main class="register-container">
     <div class="register-card">

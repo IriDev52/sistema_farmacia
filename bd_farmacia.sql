@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 21-11-2025 a las 19:41:26
+-- Tiempo de generación: 05-12-2025 a las 16:55:52
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -161,21 +161,41 @@ INSERT INTO `ubicacion` (`id_ubicacion`, `descripcion_ubicacion`, `cantidad`) VA
 
 CREATE TABLE `usuarios` (
   `id` int(11) NOT NULL,
-  `correo` varchar(30) NOT NULL,
-  `clave` varchar(30) NOT NULL
+  `correo` varchar(100) NOT NULL,
+  `clave` varchar(255) NOT NULL,
+  `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `correo`, `clave`) VALUES
-(1, 'Irimar23@gmail.com', 'Irimar123#'),
-(2, 'victor234@gmail.com', '12345678v'),
-(3, 'gabrielvielma91@gmail.com', '12345g'),
-(4, 'prueba1@gmail.com', '123456789p'),
-(6, 'lindolfo.unellez@gmail.com', '123456789'),
-(11, 'camaco81@gmail.com', '$2y$10$ITVmQKL0g2bO6A2X/zsu.uV');
+INSERT INTO `usuarios` (`id`, `correo`, `clave`, `fecha_registro`) VALUES
+(2, 'camaco81@gmail.com', '$2y$10$FKbaXpwSwVXrswswZKH9aet8V9HvoxHkQP.Ecl.n5Wp1U.Wp8mJT2', '2025-12-05 15:20:30');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `usuarios_client`
+--
+
+CREATE TABLE `usuarios_client` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `cedula` varchar(20) NOT NULL,
+  `nombre_completo` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `clave` varchar(255) NOT NULL,
+  `direccion` text DEFAULT NULL,
+  `telefono` varchar(15) DEFAULT NULL,
+  `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios_client`
+--
+
+INSERT INTO `usuarios_client` (`id`, `cedula`, `nombre_completo`, `email`, `clave`, `direccion`, `telefono`, `fecha_registro`) VALUES
+(4, '31438777', 'Marco Camacho', 'camaco81@gmail.com', '$2y$10$yABRPfyML89JWr0ScgjkEeEM5a.cQem3ciSXKJX1zUrTzkrFiVzCK', '', '04165227711', '2025-12-05 14:41:05');
 
 -- --------------------------------------------------------
 
@@ -239,7 +259,16 @@ ALTER TABLE `ubicacion`
 -- Indices de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `correo` (`correo`);
+
+--
+-- Indices de la tabla `usuarios_client`
+--
+ALTER TABLE `usuarios_client`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `cedula` (`cedula`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- Indices de la tabla `ventas`
@@ -279,7 +308,13 @@ ALTER TABLE `ubicacion`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `usuarios_client`
+--
+ALTER TABLE `usuarios_client`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
