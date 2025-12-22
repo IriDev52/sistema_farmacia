@@ -15,7 +15,7 @@ if (!$conn) {
     die("Error de conexión a la base de datos. Por favor, revisa conex.php");
 }
 
-$sql_venta = "SELECT id, fecha_venta, total FROM ventas WHERE id = ?";
+$sql_venta = "SELECT `id`, `fecha_venta`, `total_usd`, `tasa_bcv_usada`, `total_bs`FROM ventas WHERE id = ?";
 if ($stmt_venta = $conn->prepare($sql_venta)) {
     $stmt_venta->bind_param("i", $id_venta);
     $stmt_venta->execute();
@@ -67,7 +67,7 @@ $cliente_rif_ci = "V-";
 $cliente_telefono = "+58";
 
 $iva_rate = 0.16;
-$total_con_iva = $venta_data['total'];
+$total_con_iva = $venta_data['total_bs'];
 $base_imponible = $total_con_iva / (1 + $iva_rate);
 $iva_monto = $total_con_iva - $base_imponible;
 
@@ -350,7 +350,7 @@ $iva_monto = $total_con_iva - $base_imponible;
                 </div>
                 <div class="total-row grand-total-row">
                     <span class="grand-total-label">Total a Pagar</span>
-                    <span class="grand-total-amount">Bs. <?php echo number_format(htmlspecialchars($venta_data['total']), 2, ',', '.'); ?></span>
+                    <span class="grand-total-amount">Bs. <?php echo number_format(htmlspecialchars($venta_data['total_bs']), 2, ',', '.'); ?></span>
                 </div>
             </div>
         </div>

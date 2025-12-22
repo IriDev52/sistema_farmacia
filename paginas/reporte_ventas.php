@@ -53,7 +53,7 @@ if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_durat
 // --- FIN LÓGICA DE CACHÉ ---
 
 // Carga de datos de ventas (no necesita cambios)
-$sql = "SELECT id, fecha_venta, total FROM ventas ORDER BY fecha_venta DESC";
+$sql = "SELECT  `id`, `fecha_venta`, `total_usd`, `tasa_bcv_usada`, `total_bs` FROM ventas ORDER BY fecha_venta DESC";
 $resultado = $conn->query($sql);
 
 if ($resultado === false) {
@@ -451,12 +451,12 @@ if ($resultado === false) {
                     <tbody>
                         <?php 
                         while ($fila = $resultado->fetch_assoc()) { 
-                            $total_bs = $fila['total'] * $tasa_cambio_dolar_a_bs;
+                            $total_bs = $fila['total_bs'] * $tasa_cambio_dolar_a_bs;
                         ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($fila['id']); ?></td>
                                 <td><?php echo date('d/m/Y', strtotime($fila['fecha_venta'])); ?></td>
-                                <td class="currency-col"><?php echo '$ ' . number_format($fila['total'], 2, ',', '.'); ?></td>
+                                <td class="currency-col"><?php echo '$ ' . number_format($fila['total_bs'], 2, ',', '.'); ?></td>
                                 <td class="currency-col"><?php echo 'Bs ' . number_format($total_bs, 2, ',', '.'); ?></td>
                             </tr>
                         <?php } ?>
