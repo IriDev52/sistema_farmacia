@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 05-12-2025 a las 16:55:52
+-- Tiempo de generación: 18-01-2026 a las 00:40:07
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -41,7 +41,11 @@ CREATE TABLE `detalle_venta` (
 --
 
 INSERT INTO `detalle_venta` (`id_detalle_venta`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`, `subtotal`) VALUES
-(27, 27, 5, 1, 0.50, 0.50);
+(27, 27, 5, 1, 0.50, 0.50),
+(28, 28, 6, 1, 5.20, 5.20),
+(29, 29, 5, 4, 0.50, 2.00),
+(30, 30, 6, 1, 5.20, 5.20),
+(31, 31, 6, 1, 5.20, 5.20);
 
 -- --------------------------------------------------------
 
@@ -107,8 +111,8 @@ INSERT INTO `productos` (`id`, `nombre_producto`, `descripcion`, `laboratorio_fa
 (2, 'alcohol antiséptico 129ml', 'elimina las bacterias', 'Facetico ', 162, 30, '2025-07-12', NULL, 'no', 6, '0', 'activo'),
 (3, 'ampicilina 500mg', 'antibiotico', 'GENVEN', 51, 25, '2025-06-07', NULL, 'si', 0.28, 'Estante C1', 'inactivo'),
 (4, 'Amoxicilina 500mg', 'Antibiótico ', 'GENVEN', 70, 9, '2025-08-09', NULL, 'no', 5.2, 'Estante A1', 'activo'),
-(5, 'acetaminofén 500mg', 'Analgésico', 'PHARMA', 12, 10, '2027-07-09', NULL, 'no', 0.5, 'Estante C2', 'activo'),
-(6, 'Atamel 400mg', 'Analgesico', 'GENVEN', 50, 24, '2026-12-10', NULL, 'no', 5.2, 'Estante A1', 'activo'),
+(5, 'acetaminofén 500mg', 'Analgésico', 'PHARMA', 8, 10, '2027-07-09', NULL, 'no', 0.5, 'Estante C2', 'activo'),
+(6, 'Atamel 400mg', 'Analgesico', 'GENVEN', 46, 24, '2026-12-10', NULL, 'no', 5.2, 'Estante A1', 'activo'),
 (7, 'alcohol antiséptico 129ml', 'antibacterial', 'PHARMA', 0, 5, '2025-07-10', NULL, 'no', 5.2, '0', 'inactivo'),
 (8, 'Tachipirin', 'jarabe para la tos ', 'GENVEN', 19, 5, '2025-07-15', NULL, 'no', 500, 'Estante B2', 'activo');
 
@@ -171,7 +175,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `correo`, `clave`, `fecha_registro`) VALUES
-(2, 'camaco81@gmail.com', '$2y$10$FKbaXpwSwVXrswswZKH9aet8V9HvoxHkQP.Ecl.n5Wp1U.Wp8mJT2', '2025-12-05 15:20:30');
+(4, 'Irimar23@gmail.com', '$2y$10$4dkv5uKevwyo5cKzRFGfwO85uQIa4kze59XQ9aqsVSsNWNlbr.xdm', '2026-01-17 13:28:53'),
+(5, 'gabrielvielma91@gmail.com', '$2y$10$5r6yUxuyeWTB6TJmc/pxge4wwmDCcntprDIJTl4d6qCBnrTcnJ2ui', '2026-01-17 23:09:00');
 
 -- --------------------------------------------------------
 
@@ -205,6 +210,8 @@ INSERT INTO `usuarios_client` (`id`, `cedula`, `nombre_completo`, `email`, `clav
 
 CREATE TABLE `ventas` (
   `id` int(11) NOT NULL,
+  `id_producto` int(11) DEFAULT NULL,
+  `cantidad` int(11) NOT NULL,
   `fecha_venta` datetime DEFAULT current_timestamp(),
   `total_usd` decimal(10,2) NOT NULL,
   `tasa_bcv_usada` decimal(10,4) NOT NULL,
@@ -215,8 +222,14 @@ CREATE TABLE `ventas` (
 -- Volcado de datos para la tabla `ventas`
 --
 
-INSERT INTO `ventas` (`id`, `fecha_venta`, `total_usd`, `tasa_bcv_usada`, `total_bs`) VALUES
-(27, '2025-11-21 14:38:52', 0.50, 241.5780, 120.79);
+INSERT INTO `ventas` (`id`, `id_producto`, `cantidad`, `fecha_venta`, `total_usd`, `tasa_bcv_usada`, `total_bs`) VALUES
+(27, 0, 0, '2025-11-21 14:38:52', 0.50, 241.5780, 120.79),
+(28, 0, 0, '2025-12-22 10:26:40', 5.20, 36.5000, 189.80),
+(29, 0, 0, '2025-12-22 11:14:27', 2.00, 36.5000, 73.00),
+(30, 0, 0, '2025-12-22 11:24:07', 5.20, 36.5000, 189.80),
+(31, 0, 0, '2026-01-17 09:34:51', 5.20, 36.5000, 189.80),
+(32, NULL, 0, '2026-01-17 18:38:13', 5.20, 344.5071, 1791.44),
+(33, 6, 1, '2026-01-17 18:44:56', 5.20, 344.5071, 1791.44);
 
 --
 -- Índices para tablas volcadas
@@ -284,7 +297,7 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT de la tabla `detalle_venta`
 --
 ALTER TABLE `detalle_venta`
-  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientos_inventario`
@@ -308,7 +321,7 @@ ALTER TABLE `ubicacion`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios_client`
@@ -320,7 +333,7 @@ ALTER TABLE `usuarios_client`
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- Restricciones para tablas volcadas
