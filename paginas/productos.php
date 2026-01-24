@@ -1,8 +1,12 @@
 <?php
+ini_set('display_errors', 0); 
 include("../recursos/header.php");
 include("../conexion/conex.php");
-
+mysqli_set_charset($conn, "utf8");
 session_start();
+
+$fecha_hoy = date('Y-m-d');
+mysqli_query($conn, "UPDATE productos SET estado = 'Inactivo' WHERE fecha_vencimiento < '$fecha_hoy'");
 
 if (isset($_POST['registrar_producto'])) {
     $nombre = mysqli_real_escape_string($conn, $_POST['nombre']);
@@ -11,244 +15,180 @@ if (isset($_POST['registrar_producto'])) {
     $cantidad = (int)$_POST['cantidad'];
     $stock_minimo = (int)$_POST['stock_minimo'];
     $fecha_vencimiento = $_POST['fecha_vencimiento'];
-    $requiere_refrigeracion = strtolower(mysqli_real_escape_string($conn, $_POST['requiere_refrigeracion']));
-    $precio_venta = (float)$_POST['precio_venta'];
-    $ubicacion = mysqli_real_escape_string($conn, $_POST['ubicacion_produ']);
+    $precio_usd = (float)$_POST['precio_venta_usd'];
+    $ubicacion = mysqli_real_escape_string($conn, $_POST['estante']);
     $estado = 'Activo';
 
-    // --- LÓGICA DE IMAGEN ---
     $nombre_imagen = "";
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == 0) {
         $ruta_destino = "../img/";
-        $nombre_imagen = time() . "_" . basename($_FILES['imagen']['name']);
+        if (!file_exists($ruta_destino)) mkdir($ruta_destino, 0777, true);
+        $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
+        $nombre_imagen = "prod_" . time() . "." . $ext;
         move_uploaded_file($_FILES['imagen']['tmp_name'], $ruta_destino . $nombre_imagen);
     }
 
-    if (empty($nombre) || empty($laboratorio) || $cantidad <= 0 || empty($fecha_vencimiento) || empty($ubicacion) || $precio_venta <= 0) {
-        $_SESSION['message'] = "Error: Por favor, complete todos los campos obligatorios.";
-        $_SESSION['message_type'] = "danger";
-    } else {
-        // Añadida la columna 'imagen' y un parámetro 's' más al final
-        $query = "INSERT INTO productos (nombre_producto, descripcion, laboratorio_fabrica, stock_actual, stock_minimo, fecha_vencimiento, requiere_refrigeracion, precio_venta, ubicacion, estado, imagen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = mysqli_prepare($conn, $query);
-
-        if ($stmt) {
-            mysqli_stmt_bind_param($stmt, "sssiissssss", $nombre, $descripcion, $laboratorio, $cantidad, $stock_minimo, $fecha_vencimiento, $requiere_refrigeracion, $precio_venta, $ubicacion, $estado, $nombre_imagen);
-            if (mysqli_stmt_execute($stmt)) {
-                $_SESSION['message'] = "Producto '{$nombre}' registrado exitosamente.";
-                $_SESSION['message_type'] = "success";
-            } else {
-                $_SESSION['message'] = "Error al registrar el producto: " . mysqli_error($conn);
-                $_SESSION['message_type'] = "danger";
-            }
-            mysqli_stmt_close($stmt);
-        }
-    }
-    header("Location: productos.php");
-    exit();
-}
-
-if (isset($_POST['desactivar_producto'])) {
-    $id = (int)$_POST['desactivar_id'];
-    $update_query = "UPDATE productos SET estado = 'inactivo' WHERE id = ?";
-    $stmt = mysqli_prepare($conn, $update_query);
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    if (mysqli_stmt_execute($stmt)) {
-        $_SESSION['message'] = "Producto desactivado correctamente.";
+    $query = "INSERT INTO productos (nombre_producto, descripcion, laboratorio_fabrica, stock_actual, stock_minimo, fecha_vencimiento, precio_venta, ubicacion, estado, imagen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $query);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "sssiisdsss", $nombre, $descripcion, $laboratorio, $cantidad, $stock_minimo, $fecha_vencimiento, $precio_usd, $ubicacion, $estado, $nombre_imagen);
+        mysqli_stmt_execute($stmt);
+        $_SESSION['message'] = "Producto guardado correctamente";
         $_SESSION['message_type'] = "success";
+        mysqli_stmt_close($stmt);
     }
-    mysqli_stmt_close($stmt);
     header("Location: productos.php");
     exit();
 }
 
-$productos = [];
-$query = "SELECT * FROM productos ORDER BY estado DESC, nombre_producto ASC";
-$resultado = mysqli_query($conn, $query);
-if ($resultado && mysqli_num_rows($resultado) > 0) {
-    while ($fila = mysqli_fetch_assoc($resultado)) {
-        $productos[] = $fila;
-    }
-}
+$res = mysqli_query($conn, "SELECT * FROM productos WHERE estado = 'Activo' ORDER BY id DESC");
+$productos = mysqli_fetch_all($res, MYSQLI_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Productos - Farmacia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Inventario | Farmacia</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.2/css/responsive.bootstrap5.css">
     <style>
-        :root {
-            --primary-visual: #4a69bd; --secondary-visual: #88c0d0; --success-visual: #2ecc71;
-            --danger-visual: #e74c3c; --light-bg-visual: #f4f4f4; --text-dark-visual: #2c3e50;
-            --text-light-visual: #ffffff; --border-light-visual: #dbe6fd; --card-bg-visual: #ffffff;
-            --shadow-subtle-visual: 0 2px 10px rgba(0, 0, 0, 0.08); --border-radius-lg-visual: 0.5rem;
-            --border-radius-sm-visual: 0.3rem;
-        }
-        body { font-family: 'Inter', sans-serif; background-color: var(--light-bg-visual); color: var(--text-dark-visual); padding-bottom: 30px; }
-        .header-bar { background-color: var(--primary-visual); color: var(--text-light-visual); padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center; }
-        .main-container { padding: 2rem 3rem; }
-        .card { border-radius: var(--border-radius-lg-visual); background-color: var(--secondary-visual); box-shadow: var(--shadow-subtle-visual); }
-        .card-header-styled { background-color: var(--primary-visual); color: var(--text-light-visual); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-radius: var(--border-radius-lg-visual) var(--border-radius-lg-visual) 0 0; }
-        .table { background-color: var(--card-bg-visual); }
-        .estado-activo { color: var(--success-visual); font-weight: bold; }
-        .estado-inactivo { color: var(--danger-visual); font-weight: bold; }
-        .btn-action { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; color: white; }
+        :root { --primary: #0d6efd; --dark: #1e293b; --bg: #f1f5f9; }
+        body { background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        .navbar-custom { background: var(--dark); color: white; padding: 1rem 2rem; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; }
+        .badge-estante { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 6px 12px; }
     </style>
 </head>
-<body class="fade-in">
-
-<header class="header-bar">
-    <h2 class="mb-0"><i class="bi bi-capsule-pill"></i> Gestión de Productos</h2>
-    <a href="../paginas/inicio.php" class="btn btn-outline-light"><i class="bi bi-arrow-left-circle me-2"></i>Regresar</a>
-</header>
-
-<main class="main-container container-fluid">
-    <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?php echo $_SESSION['message_type']; ?> alert-dismissible fade show mb-3">
+<body>
+<nav class="navbar-custom d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-box-seam me-2"></i> Gestión de Inventario</h4>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistro">Nuevo Producto</button>
+        <a href="inicio.php" class="btn btn-outline-light ms-2">Regresar</a>
+    </div>
+</nav>
+<div class="container-fluid px-4">
+    <?php if(isset($_SESSION['message'])): ?>
+        <div class="alert alert-<?php echo $_SESSION['message_type']; ?> alert-dismissible fade show">
             <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
-
-    <div class="card">
-        <div class="card-header-styled">
-            <h4 class="mb-0">Lista de Productos</h4>
-            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#registroProductoModal">
-                <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
-            </button>
-        </div>
-        <div class="card-body p-3 bg-white">
+    <div class="card overflow-hidden">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="productosTable" width="100%">
+                <table class="table table-hover align-middle mb-0" id="tablaMain">
                     <thead>
                         <tr>
-                            <th>Imagen</th>
-                            <th>Nombre</th>
-                            <th>Laboratorio</th>
+                            <th class="ps-4">Producto</th>
+                            <th>Ubicación</th>
                             <th>Stock</th>
                             <th>Precio</th>
                             <th>Estado</th>
-                            <th class="text-center">Acciones</th>
+                            <th class="text-end pe-4">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($productos as $producto) : ?>
-                            <tr>
-                                <td class="text-center">
-                                    <?php if(!empty($producto['imagen'])): ?>
-                                        <img src="../img/<?php echo $producto['imagen']; ?>" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-                                    <?php else: ?>
-                                        <i class="bi bi-image text-muted" style="font-size: 20px;"></i>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo htmlspecialchars($producto['nombre_producto']); ?></td>
-                                <td><?php echo htmlspecialchars($producto['laboratorio_fabrica']); ?></td>
-                                <td><?php echo $producto['stock_actual']; ?></td>
-                                <td>$<?php echo number_format($producto['precio_venta'], 2); ?></td>
-                                <td><span class="<?php echo ($producto['estado'] == 'Activo') ? 'estado-activo' : 'estado-inactivo'; ?>"><?php echo $producto['estado']; ?></span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-danger btn-action btn-desactivar" data-id="<?php echo $producto['id']; ?>" data-nombre="<?php echo htmlspecialchars($producto['nombre_producto']); ?>">
-                                        <i class="bi bi-archive"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                        <?php foreach($productos as $p): ?>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <?php $foto = !empty($p['imagen']) ? "../img/".$p['imagen'] : "../img/default.png"; ?>
+                                    <img src="<?php echo $foto; ?>" class="img-thumb me-3">
+                                    <div>
+                                        <div class="fw-bold"><?php echo $p['nombre_producto']; ?></div>
+                                        <div class="text-muted small"><?php echo $p['laboratorio_fabrica']; ?></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-estante rounded-pill"><?php echo $p['ubicacion']; ?></span></td>
+                            <td>
+                                <div class="fw-bold <?php echo ($p['stock_actual'] <= $p['stock_minimo']) ? 'text-danger' : ''; ?>">
+                                    <?php echo $p['stock_actual']; ?>
+                                </div>
+                            </td>
+                            <td><span class="fw-bold text-success">$<?php echo number_format($p['precio_venta'], 2); ?></span></td>
+                            <td><span class="badge bg-success-subtle text-success"><?php echo $p['estado']; ?></span></td>
+                            <td class="text-end pe-4">
+                                <a href="editar_producto.php?id=<?php echo $p['id']; ?>" class="btn btn-outline-secondary btn-sm me-1"><i class="bi bi-pencil"></i></a>
+                                <a href="desactivar_producto.php?id=<?php echo $p['id']; ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Deseas desactivar este producto?');"><i class="bi bi-eye-slash"></i></a>
+                            </td>
+                        </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-</main>
+</div>
 
-<div class="modal fade" id="registroProductoModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Registrar Nuevo Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="modalRegistro" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form action="productos.php" method="POST" enctype="multipart/form-data" class="modal-content border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Registrar Producto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form action="productos.php" method="POST" enctype="multipart/form-data">
-                <div class="modal-body p-3">
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Nombre</label>
-                            <input type="text" class="form-control" name="nombre" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Laboratorio</label>
-                            <input type="text" class="form-control" name="laboratorio" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-bold">Imagen del Producto</label>
-                            <input type="file" class="form-control" name="imagen" accept="image/*">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Cantidad</label>
-                            <input type="number" class="form-control" name="cantidad" min="1" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Precio</label>
-                            <input type="number" step="0.01" class="form-control" name="precio_venta" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Vencimiento</label>
-                            <input type="date" class="form-control" name="fecha_vencimiento" required>
-                        </div>
-                        <input type="hidden" name="descripcion" value="">
-                        <input type="hidden" name="stock_minimo" value="5">
-                        <input type="hidden" name="ubicacion_produ" value="Estante A1">
-                        <input type="hidden" name="requiere_refrigeracion" value="no">
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold">NOMBRE</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">PRECIO ($)</label>
+                        <input type="number" step="0.01" name="precio_venta_usd" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">LABORATORIO</label>
+                        <input type="text" name="laboratorio" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">ESTANTE</label>
+                        <select name="estante" class="form-select" required>
+                            <?php foreach(range('A','F') as $L) echo "<option value='Estante $L'>Estante $L</option>"; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">STOCK</label>
+                        <input type="number" name="cantidad" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">MÍNIMO</label>
+                        <input type="number" name="stock_minimo" class="form-control" value="5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">VENCIMIENTO</label>
+                        <input type="date" name="fecha_vencimiento" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">IMAGEN</label>
+                        <input type="file" name="imagen" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">DESCRIPCIÓN</label>
+                        <textarea name="descripcion" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary btn-sm" name="registrar_producto">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="eliminarProductoModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Confirmar</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="productos.php" method="POST">
-                <div class="modal-body text-center">
-                    <input type="hidden" name="desactivar_id" id="desactivar_id">
-                    <p>¿Desactivar <strong id="producto_a_desactivar"></strong>?</p>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="submit" class="btn btn-danger btn-sm" name="desactivar_producto">Sí, Desactivar</button>
-                </div>
-            </form>
-        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" name="registrar_producto" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
-
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#productosTable').DataTable({
-            language: { url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/es-ES.json' }
-        });
-        $('#productosTable tbody').on('click', '.btn-desactivar', function () {
-            $('#desactivar_id').val($(this).data('id'));
-            $('#producto_a_desactivar').text($(this).data('nombre'));
-            new bootstrap.Modal(document.getElementById('eliminarProductoModal')).show();
+        $('#tablaMain').DataTable({
+            language: { url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/es-ES.json' },
+            order: [[0, 'asc']]
         });
     });
 </script>
