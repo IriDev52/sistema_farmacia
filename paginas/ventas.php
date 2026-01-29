@@ -2,16 +2,10 @@
 include("../recursos/header.php");
 include("../conexion/conex.php");
 
-/**
- * Obtiene la tasa USD del BCV usando el endpoint de DolarVzla y maneja la estructura JSON anidada.
- * Utiliza cURL para una conexión más robusta.
- * @return float La tasa USD. Retorna una tasa de respaldo si hay algún error.
- */
 function obtenerTasaBCV_API_Anidada() {
     $url = 'https://api.dolarvzla.com/public/exchange-rate';
-    $default_rate = 36.5; // Tasa de respaldo (DEFAULT_RATE)
+    $default_rate = 36.5;
     
-    // --- 1. CONFIGURACIÓN E INICIO DE CÁPSULA (Implementación con cURL) ---
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -21,9 +15,7 @@ function obtenerTasaBCV_API_Anidada() {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
     curl_close($ch);
-    // --- FIN CÁPSULA cURL ---
-
-    // Manejo de Errores de Conexión/HTTP
+   
     if ($response_json === FALSE || $curl_error || $http_code !== 200) {
         error_log("Error de conexión/HTTP ({$http_code}): {$curl_error}. Usando tasa predeterminada de {$default_rate}.");
         return $default_rate;
@@ -276,11 +268,11 @@ $total_products_available = $row['total_products'];
             border: 1px solid var(--border-color);
         }
         
-        /* Estilos específicos para la tasa de cambio */
+   
         .tasa-bcv-info {
             font-size: 0.9rem;
             font-weight: 600;
-            color: #ffc107; /* Color de advertencia o dorado */
+            color: #ffc107; 
             margin-bottom: 1.5rem;
             padding: 0.75rem 1.5rem;
             border-radius: 0.75rem;
@@ -794,14 +786,13 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => {
         console.log('Status HTTP:', response.status);
         console.log('Content-Type:', response.headers.get('content-type'));
-        
-        // PRIMERO obtener como texto para ver la respuesta CRUDA
+     
         return response.text().then(text => {
             console.log('=== RESPUESTA CRUDA DEL SERVIDOR ===');
             console.log('Respuesta completa:', text);
             console.log('Longitud total:', text.length);
             
-            // Mostrar caracteres problemáticos
+    
             if (text.length > 70) {
                 console.log('Caracteres alrededor de la posición 73:');
                 console.log('Posición 60-70:', JSON.stringify(text.substring(60, 70)));
@@ -809,15 +800,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Posición 80-90:', JSON.stringify(text.substring(80, 90)));
             }
             
-            // Mostrar primeros 100 caracteres
+        
             console.log('Primeros 100 caracteres:', text.substring(0, 100));
             
-            // Mostrar últimos 50 caracteres (por si hay algo al final)
+            
             if (text.length > 50) {
                 console.log('Últimos 50 caracteres:', text.substring(text.length - 50));
             }
             
-            // Ahora intentar parsear como JSON
+            
             try {
                 const jsonData = JSON.parse(text);
                 console.log('JSON parseado exitosamente:', jsonData);
@@ -865,7 +856,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error:', error);
         console.error('Stack:', error.stack);
         
-        // Mensaje más informativo para el usuario
         let errorMessage = 'Error en el proceso de venta: ';
         
         if (error.message.includes('JSON inválido')) {
