@@ -279,6 +279,9 @@ mysqli_close($conn);
             <a href="reporte_ventas.php" class="nav-link">
                 <i class="ri-bar-chart-box-line"></i> <span>Reportes</span>
             </a>
+             <a href="admin_verificar_pago.php" class="nav-link">
+                <i class="ri-shopping-bag-3-line"></i> <span>Verificar Pagos</span>
+            </a>
         </nav>
 
         <div class="logout-section">
