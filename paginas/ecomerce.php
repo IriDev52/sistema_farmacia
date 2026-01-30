@@ -206,38 +206,51 @@ include("../recursos/header.php"); // Asegúrate que aquí NO se cargue otro boo
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // 1. Lógica del buscador
-    document.getElementById('inputBuscador').addEventListener('input', function(e) {
-        const q = e.target.value.toLowerCase();
-        document.querySelectorAll('.producto-item').forEach(item => {
-            const nombre = item.getAttribute('data-nombre');
-            const lab = item.getAttribute('data-lab');
-            item.style.display = (nombre.includes(q) || lab.includes(q)) ? 'block' : 'none';
-        });
-    });
+    // Usar DOMContentLoaded asegura que Bootstrap ya exista antes de ejecutar nada
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Lógica del buscador
+        const inputBuscador = document.getElementById('inputBuscador');
+        if(inputBuscador){
+            inputBuscador.addEventListener('input', function(e) {
+                const q = e.target.value.toLowerCase();
+                document.querySelectorAll('.producto-item').forEach(item => {
+                    const nombre = item.getAttribute('data-nombre') || "";
+                    const lab = item.getAttribute('data-lab') || "";
+                    item.style.display = (nombre.includes(q) || lab.includes(q)) ? 'block' : 'none';
+                });
+            });
+        }
 
-    // 2. Pasar datos al modal de carrito
-    const modalCarrito = document.getElementById('carritoModal');
-    if(modalCarrito) {
-        modalCarrito.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            // Solo si el usuario está logeado llenamos estos campos
-            const nombreElem = document.getElementById('nombreProductoModal');
-            if(nombreElem) {
-                nombreElem.textContent = button.getAttribute('data-nombre');
-                document.getElementById('precioProductoModal').textContent = '$' + button.getAttribute('data-precio');
-                document.getElementById('idProductoInput').value = button.getAttribute('data-id');
-            }
-        });
-    }
+        // Lógica del Carrito
+        const modalCarrito = document.getElementById('carritoModal');
+        if(modalCarrito) {
+            modalCarrito.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const nombreElem = document.getElementById('nombreProductoModal');
+                // IMPORTANTE: Verifica que los elementos existan antes de asignar
+                if(nombreElem && button) {
+                    nombreElem.textContent = button.getAttribute('data-nombre');
+                    document.getElementById('precioProductoModal').textContent = '$' + button.getAttribute('data-precio');
+                    document.getElementById('idProductoInput').value = button.getAttribute('data-id');
+                }
+            });
+        }
 
-    // 3. FIX: Limpieza de Backdrops (por si acaso)
-    document.querySelectorAll('.modal').forEach(m => {
-        m.addEventListener('hidden.bs.modal', () => {
-            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-            document.body.style.overflow = 'auto';
+        // Fix de seguridad para el backdrop
+        document.querySelectorAll('.modal').forEach(m => {
+            m.addEventListener('hidden.bs.modal', () => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(b => b.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = 'auto';
+                document.body.style.paddingRight = '0';
+            });
         });
     });
 </script>
+</body>
+</html>
