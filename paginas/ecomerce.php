@@ -1,11 +1,13 @@
 <?php
-session_start(); 
+session_start();
 include("../conexion/conex.php");
 include("buscador-p-ecomerce.php");
 
 if (isset($_GET['logout'])) {
-    session_unset(); session_destroy();
-    header("Location: ecomerce.php"); exit();
+    session_unset();
+    session_destroy();
+    header("Location: ecomerce.php");
+    exit();
 }
 
 $resultado = buscarProductos($conn, '');
@@ -35,7 +37,9 @@ include("../recursos/header.php");
                         <a class="btn btn-info position-relative rounded-pill text-white" href="ver_carrito.php">
                             <i class="bi bi-cart3"></i>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                <?php $t=0; if(isset($_SESSION['carrito'])) foreach($_SESSION['carrito'] as $i) $t+=$i['cantidad']; echo $t; ?>
+                                <?php $t = 0;
+                                if (isset($_SESSION['carrito'])) foreach ($_SESSION['carrito'] as $i) $t += $i['cantidad'];
+                                echo $t; ?>
                             </span>
                         </a>
                     </li>
@@ -45,7 +49,9 @@ include("../recursos/header.php");
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><a class="dropdown-item" href="mis_compras.php"><i class="bi bi-bag-check me-2"></i>Mis Pedidos</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item text-danger" href="ecomerce.php?logout=true"><i class="bi bi-power me-2"></i>Salir</a></li>
                         </ul>
                     </li>
@@ -60,24 +66,24 @@ include("../recursos/header.php");
 
 <div class="container mt-4">
     <div class="row row-cols-1 row-cols-md-4 g-4" id="gridProductos">
-        <?php while ($fila = $resultado->fetch_assoc()): 
-            $img = !empty($fila['imagen']) && file_exists("../img/".$fila['imagen']) ? "../img/".$fila['imagen'] : "../img/descarga.png";
+        <?php while ($fila = $resultado->fetch_assoc()):
+            $img = !empty($fila['imagen']) && file_exists("../img/" . $fila['imagen']) ? "../img/" . $fila['imagen'] : "../img/descarga.png";
         ?>
-        <div class="col producto-item" data-nombre="<?= strtolower($fila['nombre_producto']); ?>" data-lab="<?= strtolower($fila['laboratorio_fabrica'] ?? ''); ?>">
-            <div class="card h-100 card-producto shadow-sm">
-                <div class="contenedor-img-ecom p-3" style="height:180px; display:flex; align-items:center; justify-content:center;">
-                    <img src="<?= $img ?>" class="img-fluid" style="max-height:100%; object-fit:contain;">
-                </div>
-                <div class="card-body d-flex flex-column text-center">
-                    <h6 class="fw-bold"><?= htmlspecialchars($fila['nombre_producto']); ?></h6>
-                    <p class="text-primary fw-bold fs-5 mt-auto">$<?= number_format($fila['precio_venta'], 2); ?></p>
-                    <button class="btn btn-buy" data-bs-toggle="modal" data-bs-target="#carritoModal" 
+            <div class="col producto-item" data-nombre="<?= strtolower($fila['nombre_producto']); ?>" data-lab="<?= strtolower($fila['laboratorio_fabrica'] ?? ''); ?>">
+                <div class="card h-100 card-producto shadow-sm">
+                    <div class="contenedor-img-ecom p-3" style="height:180px; display:flex; align-items:center; justify-content:center;">
+                        <img src="<?= $img ?>" class="img-fluid" style="max-height:100%; object-fit:contain;">
+                    </div>
+                    <div class="card-body d-flex flex-column text-center">
+                        <h6 class="fw-bold"><?= htmlspecialchars($fila['nombre_producto']); ?></h6>
+                        <p class="text-primary fw-bold fs-5 mt-auto">$<?= number_format($fila['precio_venta'], 2); ?></p>
+                        <button class="btn btn-buy" data-bs-toggle="modal" data-bs-target="#carritoModal"
                             data-nombre="<?= $fila['nombre_producto'] ?>" data-precio="<?= $fila['precio_venta'] ?>" data-id="<?= $fila['id'] ?>">
-                        <i class="bi bi-plus-circle me-1"></i> Añadir
-                    </button>
+                            <i class="bi bi-plus-circle me-1"></i> Añadir
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
         <?php endwhile; ?>
     </div>
 </div>
@@ -166,7 +172,13 @@ include("../recursos/header.php");
                             <i class="bi bi-lock text-danger display-1"></i>
                             <h5 class="mt-3 fw-bold">Acceso Restringido</h5>
                             <p class="text-muted">Inicia sesión para poder agregar productos al carrito.</p>
-                            <button type="button" class="btn btn-primary-custom px-5" data-bs-toggle="modal" data-bs-target="#modalLogin">Ir al Login</button>
+
+                            <button type="button" class="btn btn-primary-custom px-5"
+                                data-bs-dismiss="modal"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalLogin">
+                                Ir al Login
+                            </button>
                         </div>
                     <?php else: ?>
                         <h4 id="nombreProductoModal" class="fw-bold"></h4>
@@ -180,15 +192,21 @@ include("../recursos/header.php");
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-warning w-100 py-3 fw-bold shadow-sm">AGREGAR AL CARRITO</button>
                 </div>
-                    <?php endif; ?>
+            <?php endif; ?>
             </form>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Lógica del buscador y paso de datos al modal (Igual que antes)
+    document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('hidden.bs.modal', () => {
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+        document.body.style.overflow = 'auto';
+    });
+});
     document.getElementById('inputBuscador').addEventListener('input', function(e) {
         const q = e.target.value.toLowerCase();
         document.querySelectorAll('.producto-item').forEach(item => {

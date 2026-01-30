@@ -1,137 +1,186 @@
 <?php
-// ecomerce.php
 session_start(); 
-include("../conexion/conex.php"); 
-include("buscador-p-ecomerce.php"); 
+include("../conexion/conex.php");
+include("buscador-p-ecomerce.php");
 
-if ($conn->connect_error) {
-    die("Error de conexión: " . $conn->connect_error);
+if (isset($_GET['logout'])) {
+    session_unset(); session_destroy();
+    header("Location: ecomerce.php"); exit();
 }
 
-$termino_busqueda = isset($_GET['buscar']) ? $_GET['buscar'] : '';
-$resultado = buscarProductos($conn, $termino_busqueda);
-
-include("../recursos/header.php"); 
+$resultado = buscarProductos($conn, '');
+include("../recursos/header.php");
 ?>
 
-<style>
-    body { padding-top: 65px; background-color: #f8f9fa; } 
-    .navbar-brand i { color: #28a745; margin-right: 5px; } 
-    .card { transition: transform 0.2s, box-shadow 0.2s; border-radius: 10px; overflow: hidden; }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important; }
-    .bg-primary-custom { background-color: #007bff !important; }
-    
-    /* Contenedor fijo para que todas las imágenes se vean alineadas */
-    .contenedor-img-ecom {
-        height: 180px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #fff;
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-    }
-    .img-producto-ajuste {
-        max-height: 100%;
-        max-width: 100%;
-        object-fit: contain;
-    }
-</style>
+<link rel="stylesheet" href="../recursos/estilos_ecomerce.css">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom fixed-top shadow-sm">
-    <div class="container-fluid container">
-        <a class="navbar-brand" href="ecomerce.php">
-            <i class="fas fa-hand-holding-medical"></i> 
-            Farmacia Barrancas<span class="fw-bold"> Ecomerce</span>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom fixed-top shadow">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="ecomerce.php">
+            <i class="bi bi-capsule-pill text-info me-2 fs-3"></i>
+            <span class="fw-bold">PHARMA</span><span class="text-info">CORE</span>
         </a>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <form class="d-flex me-auto ms-lg-3" method="GET" action="ecomerce.php"> 
+            <div class="mx-auto" style="width: 40%;">
                 <div class="input-group">
-                    <input class="form-control" type="search" placeholder="Buscar productos..." name="buscar" value="<?php echo htmlspecialchars($termino_busqueda); ?>">
-                    <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
+                    <span class="input-group-text bg-white border-0" style="border-radius: 50px 0 0 50px;">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input class="form-control border-0" type="text" id="inputBuscador" placeholder="Buscar medicamento..." style="border-radius: 0 50px 50px 0 !important; box-shadow: none;">
                 </div>
-            </form>
+            </div>
+            <ul class="navbar-nav ms-auto align-items-center">
+                <?php if (isset($_SESSION['logeado'])): ?>
+                    <li class="nav-item me-3">
+                        <a class="btn btn-info position-relative rounded-pill text-white" href="ver_carrito.php">
+                            <i class="bi bi-cart3"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <?php $t=0; if(isset($_SESSION['carrito'])) foreach($_SESSION['carrito'] as $i) $t+=$i['cantidad']; echo $t; ?>
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i> <?= $_SESSION['usuario_cedula']; ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item" href="mis_compras.php"><i class="bi bi-bag-check me-2"></i>Mis Pedidos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="ecomerce.php?logout=true"><i class="bi bi-power me-2"></i>Salir</a></li>
+                        </ul>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item"><button class="btn btn-outline-light me-2 border-0" data-bs-toggle="modal" data-bs-target="#modalLogin">Entrar</button></li>
+                    <li class="nav-item"><button class="btn btn-info text-white fw-bold rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalRegistro">Unirse</button></li>
+                <?php endif; ?>
+            </ul>
         </div>
     </div>
 </nav>
 
-<div class="container mt-5 pt-4"> 
-    <header class="text-center mb-5 p-3 bg-white rounded shadow-sm">
-        <h1 class="display-5 text-success"><i class="fas fa-pills me-2"></i> Productos Disponibles</h1>
-    </header>
-    
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
-        <?php
-        if ($resultado && $resultado->num_rows > 0) {
-            while($fila = $resultado->fetch_assoc()) {
-                // --- LÓGICA DE RUTA PARA TU CARPETA IMG ---
-                // Según tu captura, las fotos están directo en 'img'
-                $nombre_foto = !empty($fila['imagen']) ? $fila['imagen'] : 'descarga.png';
-                $ruta_final = "../img/" . $nombre_foto;
+<div class="container mt-4">
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="gridProductos">
+        <?php while ($fila = $resultado->fetch_assoc()): 
+            $img = !empty($fila['imagen']) && file_exists("../img/".$fila['imagen']) ? "../img/".$fila['imagen'] : "../img/descarga.png";
+        ?>
+        <div class="col producto-item" data-nombre="<?= strtolower($fila['nombre_producto']); ?>" data-lab="<?= strtolower($fila['laboratorio_fabrica'] ?? ''); ?>">
+            <div class="card h-100 card-producto shadow-sm">
+                <div class="contenedor-img-ecom p-3" style="height:180px; display:flex; align-items:center; justify-content:center;">
+                    <img src="<?= $img ?>" class="img-fluid" style="max-height:100%; object-fit:contain;">
+                </div>
+                <div class="card-body d-flex flex-column text-center">
+                    <h6 class="fw-bold"><?= htmlspecialchars($fila['nombre_producto']); ?></h6>
+                    <p class="text-primary fw-bold fs-5 mt-auto">$<?= number_format($fila['precio_venta'], 2); ?></p>
+                    <button class="btn btn-buy" data-bs-toggle="modal" data-bs-target="#carritoModal" 
+                            data-nombre="<?= $fila['nombre_producto'] ?>" data-precio="<?= $fila['precio_venta'] ?>" data-id="<?= $fila['id'] ?>">
+                        <i class="bi bi-plus-circle me-1"></i> Añadir
+                    </button>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; ?>
+    </div>
+</div>
 
-                // Verificamos si el archivo realmente existe en la carpeta
-                if (!file_exists($ruta_final)) {
-                    $ruta_final = "../img/descarga.png"; // Imagen de respaldo
-                }
-                ?>
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="contenedor-img-ecom">
-                            <img src="<?php echo $ruta_final; ?>" 
-                                 class="img-producto-ajuste" 
-                                 alt="<?php echo htmlspecialchars($fila['nombre_producto']); ?>">
+<div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock me-2"></i>Ingreso de Clientes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="procesar_login.php" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">CÉDULA DE IDENTIDAD</label>
+                        <input type="text" name="cedula" class="form-control form-control-lg" placeholder="V-00000000" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">CONTRASEÑA</label>
+                        <input type="password" name="clave" class="form-control form-control-lg" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary-custom w-100 py-3">INICIAR SESIÓN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus me-2"></i>Registro de Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="procesar_registro.php" method="POST">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">NOMBRE COMPLETO</label>
+                            <input type="text" name="nombre_completo" class="form-control" required>
                         </div>
-                        
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-truncate fw-bold text-primary"><?php echo htmlspecialchars($fila['nombre_producto']); ?></h5>
-                            <p class="card-text text-muted small flex-grow-1">
-                                <?php echo htmlspecialchars(substr($fila['descripcion'], 0, 70)) . '...'; ?>
-                            </p>
-                            
-                            <div class="mt-auto pt-2 border-top text-center">
-                                <p class="h5 text-danger mb-3"><strong>$<?php echo number_format($fila['precio_venta'], 2); ?></strong></p>
-                                
-                                <button type="button" class="btn btn-success w-100 fw-bold" 
-                                        data-bs-toggle="modal" data-bs-target="#carritoModal"
-                                        data-nombre="<?php echo htmlspecialchars($fila['nombre_producto']); ?>"
-                                        data-precio="<?php echo htmlspecialchars($fila['precio_venta']); ?>"
-                                        data-id="<?php echo htmlspecialchars($fila['id']); ?>">
-                                    <i class="fas fa-cart-plus me-1"></i> Añadir
-                                </button>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">CÉDULA (ID)</label>
+                            <input type="text" name="cedula" class="form-control" placeholder="V-XXXXXXXX" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">EMAIL</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">TELÉFONO</label>
+                            <input type="text" name="telefono" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">DIRECCIÓN DE DESPACHO</label>
+                            <textarea name="direccion" class="form-control" rows="2" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">CREAR CONTRASEÑA</label>
+                            <input type="password" name="clave" class="form-control" required>
                         </div>
                     </div>
                 </div>
-                <?php
-            }
-        } else {
-            echo '<div class="col-12"><p class="alert alert-warning text-center">No se encontraron productos.</p></div>';
-        }
-        $conn->close();
-        ?>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success-custom w-100 py-3 text-uppercase">Crear mi cuenta</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <div class="modal fade" id="carritoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white"> 	
-                <h5 class="modal-title">Agregar al Carrito</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-cart-plus me-2"></i>Confirmar pedido</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" style="filter:none;"></button>
             </div>
             <form action="procesar_carrito.php" method="POST">
-                <div class="modal-body">
-                    <h4 id="nombreProductoModal" class="text-primary"></h4>
-                    <p class="lead">Precio: <strong id="precioProductoModal" class="text-danger"></strong></p>
-                    <input type="hidden" name="id_producto" id="idProductoInput">
-                    <div class="mb-3">
-                        <label class="form-label">Cantidad:</label>
-                        <input type="number" class="form-control" name="cantidad" value="1" min="1" required>
-                    </div>
+                <div class="modal-body text-center">
+                    <?php if (!isset($_SESSION['logeado'])): ?>
+                        <div class="py-4">
+                            <i class="bi bi-lock text-danger display-1"></i>
+                            <h5 class="mt-3 fw-bold">Acceso Restringido</h5>
+                            <p class="text-muted">Inicia sesión para poder agregar productos al carrito.</p>
+                            <button type="button" class="btn btn-primary-custom px-5" data-bs-toggle="modal" data-bs-target="#modalLogin">Ir al Login</button>
+                        </div>
+                    <?php else: ?>
+                        <h4 id="nombreProductoModal" class="fw-bold"></h4>
+                        <p class="h2 text-primary fw-bold" id="precioProductoModal"></p>
+                        <input type="hidden" name="id_producto" id="idProductoInput">
+                        <div class="mt-4 mx-auto" style="max-width: 150px;">
+                            <label class="form-label fw-bold small">CANTIDAD</label>
+                            <input type="number" class="form-control form-control-lg text-center fw-bold" name="cantidad" value="1" min="1" required>
+                        </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Confirmar</button>
+                    <button type="submit" class="btn btn-warning w-100 py-3 fw-bold shadow-sm">AGREGAR AL CARRITO</button>
                 </div>
+                    <?php endif; ?>
             </form>
         </div>
     </div>
@@ -139,13 +188,19 @@ include("../recursos/header.php");
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    var carritoModal = document.getElementById('carritoModal');
-    carritoModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget; 
-        document.getElementById('nombreProductoModal').textContent = button.getAttribute('data-nombre');
-        document.getElementById('precioProductoModal').textContent = '$' + button.getAttribute('data-precio');
-        document.getElementById('idProductoInput').value = button.getAttribute('data-id');
+    // Lógica del buscador y paso de datos al modal (Igual que antes)
+    document.getElementById('inputBuscador').addEventListener('input', function(e) {
+        const q = e.target.value.toLowerCase();
+        document.querySelectorAll('.producto-item').forEach(item => {
+            item.style.display = (item.dataset.nombre.includes(q) || item.dataset.lab.includes(q)) ? 'block' : 'none';
+        });
+    });
+
+    const carritoModal = document.getElementById('carritoModal');
+    carritoModal.addEventListener('show.bs.modal', function(event) {
+        const b = event.relatedTarget;
+        document.getElementById('nombreProductoModal').textContent = b.dataset.nombre;
+        document.getElementById('precioProductoModal').textContent = '$' + b.dataset.precio;
+        document.getElementById('idProductoInput').value = b.dataset.id;
     });
 </script>
-</body>
-</html>
