@@ -15,7 +15,8 @@ include("../recursos/header.php"); // Asegúrate que aquí NO se cargue otro boo
 ?>
 
 <link rel="stylesheet" href="../recursos/estilos/estilos_ecomerce.css">
-
+ </head>
+<body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom fixed-top shadow">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="ecomerce.php">
