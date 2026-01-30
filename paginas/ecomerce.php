@@ -17,14 +17,6 @@ include("../recursos/header.php"); // Asegúrate que aquí NO se cargue otro boo
 <link rel="stylesheet" href="../recursos/estilos_ecomerce.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<style>
-    .bg-primary-custom { background-color: #1a233a !important; }
-    .btn-buy { background: #4e5df8; color: white; border-radius: 10px; transition: 0.3s; }
-    .btn-buy:hover { background: #3a46c4; color: white; }
-    .card-producto { border-radius: 15px; border: none; transition: 0.3s; }
-    .card-producto:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-</style>
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom fixed-top shadow">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="ecomerce.php">
