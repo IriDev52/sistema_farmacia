@@ -15,7 +15,6 @@ include("../recursos/header.php"); // Asegúrate que aquí NO se cargue otro boo
 ?>
 
 <link rel="stylesheet" href="../recursos/estilos_ecomerce.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom fixed-top shadow">
     <div class="container">
@@ -206,7 +205,7 @@ include("../recursos/header.php"); // Asegúrate que aquí NO se cargue otro boo
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <script>
     // 1. Lógica del buscador
