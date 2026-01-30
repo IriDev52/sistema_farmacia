@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("../conexion/conex.php");
+include("../recursos/header.php"); 
 
 // Verificamos sesión y que exista una venta para reportar
 if (!isset($_SESSION['logeado']) || !isset($_GET['id_venta'])) {
@@ -10,75 +10,149 @@ if (!isset($_SESSION['logeado']) || !isset($_GET['id_venta'])) {
 
 $id_venta = $_GET['id_venta'];
 $cedula_user = $_SESSION['usuario_cedula'];
-
-include("../recursos/header.php"); 
 ?>
 
+<link rel="stylesheet" href="../recursos/estilos_ecomerce.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
 <style>
-    body { background-color: #f0f2f5; }
-    .card-pago { border-radius: 20px; border: none; overflow: hidden; }
-    .metodo-pago { background: #e8f5e9; border: 2px dashed #2e7d32; border-radius: 15px; }
-    .instrucciones { font-size: 0.9rem; color: #555; }
+    body { background-color: var(--pc-bg); }
+    
+    .card-pago { 
+        border-radius: 24px; 
+        border: none; 
+        overflow: hidden; 
+        background: var(--pc-white);
+    }
+    
+    .metodo-pago-box { 
+        background: rgba(40, 167, 69, 0.04); 
+        border: 2px solid rgba(40, 167, 69, 0.1); 
+        border-radius: 18px; 
+    }
+
+    .dato-bancario {
+        background: white;
+        padding: 10px 15px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        border: 1px solid #edf2f7;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .label-dato {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #718096;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .valor-dato {
+        color: var(--pc-dark);
+        font-weight: 600;
+    }
+
+    .stepper-pago {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 2rem;
+    }
+
+    .step-item {
+        text-align: center;
+        opacity: 0.4;
+    }
+
+    .step-item.active {
+        opacity: 1;
+        color: var(--pc-accent);
+        font-weight: bold;
+    }
 </style>
 
-<div class="container mt-5 pt-5">
+<div class="container mt-5 pt-4 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-5">
+        <div class="col-md-8 col-lg-5">
+            
+            <div class="stepper-pago">
+                <div class="step-item"><i class="bi bi-cart-check fs-4"></i><div class="small">Carrito</div></div>
+                <div class="step-item active"><i class="bi bi-credit-card-2-front fs-4"></i><div class="small">Pago</div></div>
+                <div class="step-item"><i class="bi bi-truck fs-4"></i><div class="small">Envío</div></div>
+            </div>
+
             <div class="card card-pago shadow-lg">
-                <div class="card-header bg-success text-white text-center py-3">
-                    <h4 class="mb-0"><i class="fas fa-receipt me-2"></i> Reportar Pago Móvil</h4>
-                    <small>Venta Nro: #<?php echo $id_venta; ?></small>
+                <div class="card-header border-0 text-white text-center py-4" style="background-color: var(--pc-dark);">
+                    <h4 class="mb-0 fw-bold text-info">Confirmar Pago</h4>
+                    <span class="badge bg-info text-dark mt-2">Orden #<?php echo $id_venta; ?></span>
                 </div>
                 
-                <div class="card-body p-4">
-                    <div class="metodo-pago p-3 mb-4 text-center">
-                        <h6 class="fw-bold text-success mb-3"><i class="fas fa-university me-2"></i> DATOS DE TRANSFERENCIA</h6>
-                        <div class="row g-2 text-start px-3">
-                            <div class="col-6 text-muted">Banco:</div>
-                            <div class="col-6 fw-bold">Banesco</div>
-                            <div class="col-6 text-muted">Teléfono:</div>
-                            <div class="col-6 fw-bold">0412-1234567</div>
-                            <div class="col-6 text-muted">RIF/Cédula:</div>
-                            <div class="col-6 fw-bold">J-123456789</div>
+                <div class="card-body p-4 p-md-5">
+                    
+                    <h6 class="fw-bold mb-3 text-center"><i class="bi bi-bank me-2"></i>Datos para Pago Móvil</h6>
+                    
+                    <div class="metodo-pago-box p-3 mb-4">
+                        <div class="dato-bancario">
+                            <span class="label-dato">Banco</span>
+                            <span class="valor-dato">Banesco (0134)</span>
                         </div>
-                    </div>
-
-                    <div class="instrucciones mb-4 border-start border-4 border-warning ps-3">
-                        <p class="mb-0"><strong>Nota:</strong> Realice el pago móvil por el monto total de su compra y coloque aquí los <strong>últimos 6 dígitos</strong> de la referencia bancaria.</p>
+                        <div class="dato-bancario">
+                            <span class="label-dato">Teléfono</span>
+                            <span class="valor-dato">0412-1234567</span>
+                        </div>
+                        <div class="dato-bancario">
+                            <span class="label-dato">RIF</span>
+                            <span class="valor-dato">J-123456789</span>
+                        </div>
                     </div>
 
                     <form action="procesar_reporte_pago.php" method="POST">
                         <input type="hidden" name="id_venta" value="<?php echo $id_venta; ?>">
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-fingerprint me-1"></i> Número de Referencia</label>
-                            <input type="text" name="referencia" class="form-control form-control-lg text-center fw-bold" 
-                                   placeholder="Ej: 845213" pattern="[0-9]+" title="Solo números" required>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">NÚMERO DE REFERENCIA (Últimos 6 dígitos)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-hash"></i></span>
+                                <input type="text" name="referencia" class="form-control form-control-lg border-start-0 ps-0 fw-bold" 
+                                       placeholder="Ej: 845213" pattern="[0-9]+" maxlength="8" required>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-1"></i> Dirección de Entrega</label>
-                            <textarea name="detalles_envio" class="form-control" rows="3" 
-                                      placeholder="Punto de referencia, calle, número de casa..." required></textarea>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">CONFIRMAR DIRECCIÓN DE ENTREGA</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt"></i></span>
+                                <textarea name="detalles_envio" class="form-control border-start-0 ps-0" rows="3" 
+                                          placeholder="Ej: Edificio Farma, Piso 2, Apto 4. Frente a la plaza." required></textarea>
+                            </div>
                         </div>
 
-                        <hr>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg fw-bold shadow-sm">
-                                <i class="fas fa-check-circle me-2"></i> NOTIFICAR PAGO
+                        <div class="d-grid gap-3 mt-4">
+                            <button type="submit" class="btn btn-buy btn-lg py-3 shadow-sm text-uppercase">
+                                Finalizar Pedido <i class="bi bi-check2-circle ms-2"></i>
                             </button>
-                            <a href="ecomerce.php" class="btn btn-link text-muted btn-sm text-decoration-none">Pagar más tarde</a>
+                            <a href="ecomerce.php" class="btn btn-link text-muted btn-sm text-decoration-none">
+                                <i class="bi bi-arrow-left me-1"></i> Regresar al catálogo
+                            </a>
                         </div>
                     </form>
                 </div>
                 
-                <div class="card-footer bg-light text-center py-3">
-                    <small class="text-muted">Su pedido será procesado una vez verifiquemos los fondos.</small>
+                <div class="card-footer bg-light border-0 text-center py-3">
+                    <div class="d-flex align-items-center justify-content-center text-muted small">
+                        <i class="bi bi-shield-lock-fill text-success me-2"></i>
+                        Transacción protegida por PharmaCore SSL
+                    </div>
                 </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted small">¿Problemas con el pago? <a href="#" class="text-accent fw-bold text-decoration-none">Contactar a soporte</a></p>
             </div>
         </div>
     </div>
 </div>
 
-<?php include("../recursos/footer.php"); ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

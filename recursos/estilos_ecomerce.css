@@ -1,0 +1,97 @@
+/* Variables de Marca PharmaCore */
+:root {
+    --pc-dark: #1a233a;       /* Azul Profundo */
+    --pc-accent: #4e5df8;     /* Azul Eléctrico */
+    --pc-success: #28a745;    /* Verde Salud */
+    --pc-bg: #f4f7fe;         /* Fondo Gris Azulado */
+    --pc-white: #ffffff;
+}
+
+body {
+    padding-top: 90px;
+    background-color: var(--pc-bg);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Navbar y Navegación */
+.bg-primary-custom {
+    background-color: var(--pc-dark) !important;
+    border-bottom: 3px solid var(--pc-accent);
+}
+
+.search-input {
+    border-radius: 50px !important;
+    padding-left: 20px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--pc-accent);
+    box-shadow: 0 0 12px rgba(78, 93, 248, 0.25);
+}
+
+/* Cards de Productos */
+.card-producto {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+}
+
+.card-producto:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(26, 35, 58, 0.15) !important;
+}
+
+/* Estilo Global para Modales */
+.modal-content {
+    border-radius: 20px;
+    border: none;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: none;
+    padding: 1.5rem;
+}
+
+.modal-header.bg-primary { background-color: var(--pc-dark) !important; }
+.modal-header.bg-success { background-color: var(--pc-success) !important; }
+
+.modal-footer {
+    border-top: none;
+    padding: 1.5rem;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 10px 15px;
+    border: 1px solid #e0e6ed;
+}
+
+.form-control:focus {
+    border-color: var(--pc-accent);
+    box-shadow: none;
+}
+
+/* Botones */
+.btn-rounded {
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 10px 25px;
+}
+
+.btn-buy {
+    background: var(--pc-accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-buy:hover {
+    background: var(--pc-dark);
+    color: white;
+}
