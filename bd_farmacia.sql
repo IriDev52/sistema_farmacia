@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-01-2026 a las 18:38:46
+-- Tiempo de generación: 30-01-2026 a las 14:27:42
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -52,7 +52,20 @@ INSERT INTO `detalle_venta` (`id_detalle_venta`, `id_venta`, `id_producto`, `can
 (35, 62, 1, 1, 1.00, 1.00),
 (36, 63, 1, 1, 1.00, 1.00),
 (37, 64, 8, 1, 4.00, 4.00),
-(38, 65, 8, 1, 4.00, 4.00);
+(38, 65, 8, 1, 4.00, 4.00),
+(39, 66, 1, 1, 1.00, 1.00),
+(40, 66, 9, 1, 15.00, 15.00),
+(41, 67, 1, 1, 1.00, 1.00),
+(42, 67, 9, 1, 15.00, 15.00),
+(43, 67, 6, 1, 16.00, 16.00),
+(44, 68, 1, 1, 1.00, 1.00),
+(45, 68, 8, 1, 4.00, 4.00),
+(46, 69, 1, 1, 1.00, 1.00),
+(47, 70, 1, 1, 1.00, 1.00),
+(48, 71, 1, 1, 1.00, 1.00),
+(49, 72, 1, 1, 1.00, 1.00),
+(50, 73, 1, 1, 1.00, 1.00),
+(51, 73, 9, 1, 15.00, 15.00);
 
 -- --------------------------------------------------------
 
@@ -118,13 +131,13 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre_producto`, `sustancia_activa`, `descripcion`, `laboratorio_fabrica`, `clasificacion`, `stock_actual`, `stock_minimo`, `fecha_vencimiento`, `numero_lote`, `requiere_refrigeracion`, `precio_venta`, `precio_bs`, `ubicacion`, `estado`, `imagen`) VALUES
-(1, 'artrovit', NULL, 'aliviar el dolor, reducir la inflamación y mejorar la movilidad en articulaciones y huesos', 'PHARMA ', 'Libre Venta', 97, 5, '2026-06-30', NULL, '', 1, 350.00, 'Estante A', 'activo', 'prod_1769210090.png'),
+(1, 'artrovit', NULL, 'aliviar el dolor, reducir la inflamación y mejorar la movilidad en articulaciones y huesos', 'PHARMA ', 'Libre Venta', 95, 5, '2026-06-30', NULL, '', 1, 350.00, 'Estante A', 'activo', 'prod_1769210090.png'),
 (4, 'Vitamina c', NULL, 'Esencial para el crecimiento y reparación de tejido, la producción de colágenos ', 'FARMA', 'Libre Venta', 4, 5, '2027-02-12', NULL, '', 3, 0.00, 'Estante B', 'activo', 'prod_1769210976.jpeg'),
 (5, 'Apiret ', NULL, 'Jarabe para niño, baja la fiebre, alivia el malestar general y el dolor ', 'GENVEN', 'Libre Venta', 5, 5, '2026-01-25', NULL, '', 5, 0.00, 'Estante D', 'inactivo', 'prod_1769211101.jpeg'),
 (6, 'Diclofenac  Potásico 50mg', NULL, 'Aliviar el dolor y la inflamación en condiciones como el reumatismo y el dolor en la columna', 'FARMA', 'Libre Venta', 20, 5, '2028-03-17', NULL, '', 16, 0.00, 'Estante A', 'activo', 'prod_1769211362.jpeg'),
 (7, 'Alcohol Antisï¿½ptico 70%', NULL, 'Desinfección y limpieza', 'GENVEN', 'Libre Venta', 19, 5, '2026-01-27', NULL, '', 5, 0.00, 'Estante C', 'inactivo', 'prod_1769211559.jpeg'),
 (8, 'Desloratadina 5mg', NULL, 'Antihistamínico utilizado para aliviar los síntomas de alergias', 'FARMA', 'Libre Venta', 6, 5, '2027-07-15', NULL, '', 4, 0.00, 'Estante C', 'activo', 'prod_1769211896.jpeg'),
-(9, 'Azitromicina 500mg', NULL, 'Antibiótico que se utiliza para tratar diversas infecciones bacterianas', 'PHARMA', 'Libre Venta', 6, 5, '2026-10-19', NULL, '', 15, 0.00, 'Estante A', 'activo', 'prod_1769212169.jpeg'),
+(9, 'Azitromicina 500mg', NULL, 'Antibiótico que se utiliza para tratar diversas infecciones bacterianas', 'PHARMA', 'Libre Venta', 5, 5, '2026-10-19', NULL, '', 15, 0.00, 'Estante A', 'activo', 'prod_1769212169.jpeg'),
 (10, 'Ibuprofeno 400mg', NULL, 'Reducir la fiebre y aliviar el dolor o la inflamación', 'PHARMA', 'Libre Venta', 18, 5, '2027-11-29', NULL, '', 2, 0.00, 'Estante A', 'activo', 'prod_1769212425.jpeg'),
 (11, 'Acetaminofï¿½n ', NULL, 'Dolor de cabeza ', 'Phama', 'Libre Venta', 49, 5, '2026-01-25', NULL, '', 2, 0.00, 'Estante B', 'inactivo', 'prod_1769258133.jpg'),
 (12, 'Biotina ', NULL, 'Vitamina ', 'PHARMA ', 'Libre Venta', 20, 5, '2026-01-23', NULL, '', 3, 0.00, 'Estante D', 'inactivo', 'prod_1769261808.webp'),
@@ -298,8 +311,16 @@ INSERT INTO `ventas` (`id`, `cedula_cliente`, `referencia_pago`, `detalles_envio
 (61, '24114415', NULL, NULL, NULL, 0, '2026-01-29 13:10:30', 1.00, 'Rechazado', '2026-01-29 17:25:07', 0.0000, 0.00),
 (62, '24114415', '1234345', 'Barinas', NULL, 0, '2026-01-29 13:16:53', 1.00, 'Pendiente', '2026-01-29 17:25:07', 0.0000, 0.00),
 (63, '24114415', '12239067', 'Barrancas', NULL, 0, '2026-01-29 13:33:27', 1.00, 'Verificado', '2026-01-29 17:33:27', 0.0000, 0.00),
-(64, '24114415', NULL, NULL, NULL, 0, '2026-01-29 13:35:14', 4.00, 'Pendiente', '2026-01-29 17:35:14', 0.0000, 0.00),
-(65, '24114415', '23412', '12 de Marzo', NULL, 0, '2026-01-29 13:35:24', 4.00, 'Pendiente', '2026-01-29 17:35:24', 0.0000, 0.00);
+(64, '24114415', NULL, NULL, NULL, 0, '2026-01-29 13:35:14', 4.00, 'Rechazado', '2026-01-29 17:35:14', 0.0000, 0.00),
+(65, '24114415', '23412', '12 de Marzo', NULL, 0, '2026-01-29 13:35:24', 4.00, 'Pendiente', '2026-01-29 17:35:24', 0.0000, 0.00),
+(66, '24114415', NULL, NULL, NULL, 0, '2026-01-30 08:10:06', 16.00, 'Verificado', '2026-01-30 12:10:06', 0.0000, 0.00),
+(67, '24114415', NULL, NULL, NULL, 0, '2026-01-30 08:12:33', 32.00, 'Pendiente', '2026-01-30 12:12:33', 0.0000, 0.00),
+(68, '24114415', NULL, NULL, NULL, 0, '2026-01-30 08:16:25', 5.00, 'Pendiente', '2026-01-30 12:16:25', 0.0000, 0.00),
+(69, '24114415', NULL, NULL, NULL, 0, '2026-01-30 08:54:18', 1.00, 'Pendiente', '2026-01-30 12:54:18', 0.0000, 0.00),
+(70, '24114415', NULL, NULL, NULL, 0, '2026-01-30 08:58:12', 1.00, 'Pendiente', '2026-01-30 12:58:12', 0.0000, 0.00),
+(71, '24114415', '78905', 'evehyt', NULL, 0, '2026-01-30 09:03:36', 1.00, 'Pendiente', '2026-01-30 13:03:36', 0.0000, 0.00),
+(72, '24114415', '0001111', '12 de marzo', NULL, 0, '2026-01-30 09:16:01', 1.00, 'Verificado', '2026-01-30 13:16:01', 0.0000, 0.00),
+(73, '24114415', NULL, NULL, NULL, 0, '2026-01-30 09:21:44', 16.00, 'Rechazado', '2026-01-30 13:21:44', 0.0000, 0.00);
 
 --
 -- Índices para tablas volcadas
@@ -373,7 +394,7 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT de la tabla `detalle_venta`
 --
 ALTER TABLE `detalle_venta`
-  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id_detalle_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientos_inventario`
@@ -415,7 +436,7 @@ ALTER TABLE `usuarios_client`
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- Restricciones para tablas volcadas
