@@ -14,7 +14,7 @@ $resultado = buscarProductos($conn, '');
 include("../recursos/header.php"); // Asegúrate que aquí NO se cargue otro bootstrap.js antiguo
 ?>
 
-<link rel="stylesheet" href="../recursos/estilos_ecomerce.css">
+<link rel="stylesheet" href="../recursos/estilos/estilos_ecomerce.css">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom fixed-top shadow">
     <div class="container">
